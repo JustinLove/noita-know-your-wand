@@ -1,0 +1,51 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Noita, Know Your Wand</title>
+  <meta name="description" content="Sort nota wand graphics to observe how traits influence appearance">
+  <link href="style.css" rel="stylesheet" />
+  <script type="text/javascript" src="noita-know-your-wand.js"></script>
+  <link rel="shortcut icon" href="favicon.ico" sizes="16x16 32x32 48x48 64x64">
+</head>
+
+<body>
+</body>
+
+<script type="text/javascript">
+  var app = Elm.NoitaKnowYourWand.init()
+
+  // ------------------ Log ------------------
+  var logCommand = function(message) {
+    switch(message.kind) {
+      case 'debug':
+        console.debug(message.note, message.value)
+        break
+      case 'log':
+        console.log(message.note)
+        break
+      case 'info':
+        console.info(message.note)
+        break
+      case 'warn':
+        console.warn(message.note)
+        break
+      case 'error':
+        console.error(message.note, message.value)
+        break
+      default:
+        console.log('unknown message', message)
+        break;
+    }
+  }
+
+  if (app.ports && app.ports.logCommand) {
+    app.ports.logCommand.subscribe(logCommand)
+  }
+
+</script>
+<!--script defer src="svgxuse.js"></script-->
+
+</html>
+

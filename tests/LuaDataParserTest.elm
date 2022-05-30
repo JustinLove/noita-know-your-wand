@@ -1,6 +1,7 @@
 module LuaDataParserTest exposing (..)
 
 import LuaData.Parser exposing (..)
+import LuaData exposing (..)
 
 import Parser.Advanced exposing (run)
 import Dict

@@ -1,5 +1,7 @@
 module LuaData.Parser exposing (..)
 
+import LuaData exposing (..)
+
 import Parser.Advanced exposing (..)
 
 import Set
@@ -8,14 +10,6 @@ import Dict exposing (Dict)
 type alias Context = String
 type alias Problem = String
 type alias LuaDataParser a = Parser Context Problem a
-
-type LuaValue
-  = LuaString String
-  | LuaInt Int
-  | LuaTable LuaDict
-  | LuaArray (List LuaValue)
-
-type alias LuaDict = Dict String LuaValue
 
 topLevel : LuaDataParser (String, LuaValue)
 topLevel =
@@ -128,3 +122,22 @@ luaReservedWords =
   , "until"
   , "while"
   ]
+
+
+---------------------
+
+deadEndsToString : List (DeadEnd Context Problem) -> String
+deadEndsToString deadEnds =
+  deadEnds
+    |> List.map deadEndToString
+    |> String.join "\n"
+
+deadEndToString : DeadEnd Context Problem -> String
+deadEndToString {row, col, problem, contextStack} =
+  (problem ++ " at " ++ (String.fromInt row) ++ "," ++ (String.fromInt col)) :: (contextStack |> List.map contextToString)
+    |> String.join " while: "
+
+contextToString : {r|context : Context} -> String
+contextToString {context} =
+  context
+
