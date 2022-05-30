@@ -56,7 +56,6 @@ myWand =
     field = LuaData.Decode.field
     string = LuaData.Decode.string
     int = LuaData.Decode.int
-    bool = LuaData.Decode.map (\n -> if n == 1 then True else False) int
   in
   LuaData.Decode.succeed Wand
     |> with (field "file" string)
@@ -66,7 +65,7 @@ myWand =
     |> with (field "tip_y" int)
     |> with (field "fire_rate_wait" int)
     |> with (field "actions_per_round" int)
-    |> with (field "shuffle_deck_when_empty" bool)
+    |> with (field "shuffle_deck_when_empty" int)
     |> with (field "deck_capacity" int)
     |> with (field "spread_degrees" int)
     |> with (field "reload_time" int)
