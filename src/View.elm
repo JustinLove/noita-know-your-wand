@@ -5,11 +5,14 @@ import Wand exposing (Wand, Dimension(..))
 import Array
 import Element exposing (..)
 import Element.Border as Border
+import Element.Input as Input
 import Html exposing (Html)
 import Html.Attributes
 
 type Msg
   = None
+  | ChangedRows Dimension
+  | ChangedColumns Dimension
 
 document tagger model =
   { title = "Noita, Know Your Wand"
@@ -24,6 +27,8 @@ view model =
       [ width fill
       ]
       [ (text "Noita, know your wand")
+      , dimensionSelect ChangedRows "Rows" model.rowDimension
+      , dimensionSelect ChangedColumns "Columns" model.columnDimension
       , model.wands
         --|> List.take 20
         --|> List.singleton
@@ -68,6 +73,24 @@ displayWand wand =
       , description = wand.file
       }
     ]
+
+dimensionSelect : (Dimension -> Msg) -> String -> Dimension-> Element Msg
+dimensionSelect tagger title dim =
+  Input.radioRow
+    [
+    ]
+    { onChange = tagger
+    , selected = Just dim
+    , label = Input.labelRight [] (text title)
+    , options =
+      [ Input.option CastDelay (text "Cast Delay")
+      , Input.option Actions (text "Actions")
+      , Input.option Shuffle (text "Shuffle")
+      , Input.option Slots (text "Slots")
+      , Input.option Spread (text "Spread")
+      , Input.option ReloadTime (text "ReloadTime")
+      ]
+    }
 
 partitionTable : Dimension -> Dimension -> List Wand -> List (List (List Wand))
 partitionTable rowDimension columnDimension wands =

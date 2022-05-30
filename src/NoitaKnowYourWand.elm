@@ -33,7 +33,7 @@ init : () -> (Model, Cmd Msg)
 init flags =
   ( { wands = []
     , rowDimension = CastDelay
-    , columnDimension = DeckCapacity
+    , columnDimension = Slots
     }
   , fetchWands)
 
@@ -41,6 +41,10 @@ update msg model =
   case msg of
     UI (View.None) ->
       (model, Cmd.none)
+    UI (View.ChangedRows dim) ->
+      ({model | rowDimension = dim}, Cmd.none)
+    UI (View.ChangedColumns dim) ->
+      ({model | columnDimension = dim}, Cmd.none)
     GotWands (Ok wands) ->
       ({model | wands = wands}, Cmd.none)
     GotWands (Err error) ->

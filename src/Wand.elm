@@ -9,7 +9,7 @@ type alias Wand =
   , castDelay : Int
   , actions : Int
   , shuffle : Int
-  , deckCapacity : Int
+  , slots : Int
   , spread : Int
   , reloadTime : Int
   }
@@ -18,7 +18,7 @@ type Dimension
   = CastDelay
   | Actions
   | Shuffle
-  | DeckCapacity
+  | Slots
   | Spread
   | ReloadTime
 
@@ -28,7 +28,7 @@ attribute dim =
     CastDelay -> .castDelay
     Actions -> .actions
     Shuffle -> .shuffle
-    DeckCapacity -> .deckCapacity
+    Slots -> .slots
     Spread -> .spread
     ReloadTime -> .reloadTime
 
@@ -39,6 +39,8 @@ values dim =
       [ "0"
       , "1"
       , "2"
+      , "3"
+      , "4"
       ]
     Actions ->
       [ "0"
@@ -49,7 +51,7 @@ values dim =
       [ "No"
       , "Yes"
       ]
-    DeckCapacity ->
+    Slots ->
       [ "0"
       , "1"
       , "2"
