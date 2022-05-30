@@ -4,6 +4,7 @@ import Wand exposing (Wand, Dimension(..))
 
 import Array
 import Element exposing (..)
+import Element.Background as Background
 import Element.Border as Border
 import Element.Input as Input
 import Html exposing (Html)
@@ -23,6 +24,7 @@ document tagger model =
 view model =
   layout
     [ width fill
+    , Background.color (rgb 0.2 0.2 0.2)
     ] <|
     column
       [ width fill
@@ -79,7 +81,7 @@ displayWand wand =
 dimensionSelect : (Dimension -> Msg) -> String -> Dimension-> Element Msg
 dimensionSelect tagger title dim =
   Input.radioRow
-    [
+    [ spacing 10 
     ]
     { onChange = tagger
     , selected = Just dim
