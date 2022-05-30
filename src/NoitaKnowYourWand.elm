@@ -1,6 +1,7 @@
 module NoitaKnowYourWand exposing (..)
 
-import View exposing (Wand)
+import View
+import Wand exposing (Wand, Dimension(..))
 
 import Log
 import LuaData
@@ -17,6 +18,8 @@ type Msg
 
 type alias Model =
   { wands : List Wand
+  , rowDimension : Dimension
+  , columnDimension : Dimension
   }
 
 main = Browser.document
@@ -29,6 +32,8 @@ main = Browser.document
 init : () -> (Model, Cmd Msg)
 init flags =
   ( { wands = []
+    , rowDimension = CastDelay
+    , columnDimension = DeckCapacity
     }
   , fetchWands)
 

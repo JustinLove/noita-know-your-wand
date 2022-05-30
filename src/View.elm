@@ -1,4 +1,6 @@
-module View exposing (Msg(..), document, view, Wand)
+module View exposing (Msg(..), document, view)
+
+import Wand exposing (Wand, Dimension(..))
 
 import Array
 import Element exposing (..)
@@ -8,21 +10,6 @@ import Html.Attributes
 
 type Msg
   = None
-
-type alias Wand =
-  { file : String
-  , gripX : Int
-  , gripY : Int
-  , tipX : Int
-  , tipY : Int
-  , castDelay : Int
-  , actions : Int
-  , shuffle : Int
-  , deckCapacity : Int
-  , spread : Int
-  , reloadTime : Int
-  }
-
 
 document tagger model =
   { title = "Noita, Know Your Wand"
@@ -40,13 +27,7 @@ view model =
       , model.wands
         --|> List.take 20
         --|> List.singleton
-        --|> partitionByNumber .deckCapacity 8
-        |> partitionByNumber .castDelay 3
-        --|> partitionByNumber .reloadTime 3
-        --|> partitionByNumber .actions 3
-        --|> partitionByNumber .spread 3
-        --|> partitionByNumber .shuffle 2
-        |> List.map (partitionByNumber .deckCapacity 8)
+        |> partitionTable model.rowDimension model.columnDimension
         |> displayWandTable
       ]
 
@@ -88,15 +69,21 @@ displayWand wand =
       }
     ]
 
-partitionByNumber : (Wand -> Int) -> Int -> List Wand -> List (List Wand)
-partitionByNumber attr max wands =
+partitionTable : Dimension -> Dimension -> List Wand -> List (List (List Wand))
+partitionTable rowDimension columnDimension wands =
+  wands
+    |> partitionByNumber rowDimension
+    |> List.map (partitionByNumber columnDimension)
+
+partitionByNumber : Dimension -> List Wand -> List (List Wand)
+partitionByNumber dim wands =
   List.foldl (\wand sorted ->
       let
-        value = attr wand
+        value = (Wand.attribute dim) wand
       in
         Array.get value sorted
           |> Maybe.map (\list -> wand :: list)
           |> Maybe.withDefault [wand]
           |> (\list -> Array.set value list sorted)
-    ) (Array.initialize max (always [])) wands
+    ) (Array.initialize (List.length (Wand.values dim)) (always [])) wands
   |> Array.toList
