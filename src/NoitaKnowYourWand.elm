@@ -1,6 +1,6 @@
 module NoitaKnowYourWand exposing (..)
 
-import View
+import View exposing (Wand)
 
 import Log
 import LuaData
@@ -17,21 +17,6 @@ type Msg
 
 type alias Model =
   { wands : List Wand
-  }
-
-type alias Wand =
-  { name : String
-  , file : String
-  , gripX : Int
-  , gripY : Int
-  , tipX : Int
-  , tipY : Int
-  , castDelay : Int
-  , actions : Int
-  , shuffle : Bool
-  , deckCapacity : Int
-  , spread : Int
-  , reloadTime : Int
   }
 
 main = Browser.document
@@ -74,7 +59,6 @@ myWand =
     bool = LuaData.Decode.map (\n -> if n == 1 then True else False) int
   in
   LuaData.Decode.succeed Wand
-    |> with (field "name" string)
     |> with (field "file" string)
     |> with (field "grip_x" int)
     |> with (field "grip_y" int)

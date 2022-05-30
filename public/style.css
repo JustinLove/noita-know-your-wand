@@ -1,0 +1,29 @@
+.wand-sprite img { transform: scale(4) translate(20px, 0%); }
+
+.crisp img, .crisp canvas, .crisp {
+  image-rendering: optimizeSpeed;             /*                     */
+  image-rendering: -moz-crisp-edges;          /* Firefox             */
+  image-rendering: -o-crisp-edges;            /* Opera               */
+  image-rendering: -webkit-optimize-contrast; /* Chrome (and Safari) */
+  image-rendering: optimize-contrast;         /* CSS3 Proposed (old?)      */
+  image-rendering: pixelated;                 /* CSS3 Proposed (current)?      */
+  -ms-interpolation-mode: nearest-neighbor;   /* IE8+                */
+  }
+
+
+footer { position: fixed; bottom: 0;}
+svg.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.2em;
+  stroke-width: 0;
+  stroke: currentColor;
+  fill: currentColor;
+}
+
+.icon-github { color: #888; }
+.icon-twitter { color: #55acee; }
+.icon-twitch { color: #6441A4; }
+a:link, a:visited { color: #b6a242; }
+a:hover, a:active { color: rgb(218, 216, 222); }
