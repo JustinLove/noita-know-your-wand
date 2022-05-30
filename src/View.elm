@@ -13,6 +13,7 @@ type Msg
   = None
   | ChangedRows Dimension
   | ChangedColumns Dimension
+  | ChangedSort Dimension
 
 document tagger model =
   { title = "Noita, Know Your Wand"
@@ -29,10 +30,11 @@ view model =
       [ (text "Noita, know your wand")
       , dimensionSelect ChangedRows "Rows" model.rowDimension
       , dimensionSelect ChangedColumns "Columns" model.columnDimension
+      , dimensionSelect ChangedSort "Sort" model.sortDimension
       , model.wands
         --|> List.take 20
         --|> List.singleton
-        |> partitionTable model.rowDimension model.columnDimension
+        |> partitionTable model.rowDimension model.columnDimension model.sortDimension
         |> displayWandTable
       ]
 
@@ -92,11 +94,12 @@ dimensionSelect tagger title dim =
       ]
     }
 
-partitionTable : Dimension -> Dimension -> List Wand -> List (List (List Wand))
-partitionTable rowDimension columnDimension wands =
+partitionTable : Dimension -> Dimension -> Dimension -> List Wand -> List (List (List Wand))
+partitionTable rowDimension columnDimension sortDimension wands =
   wands
     |> partitionByNumber rowDimension
     |> List.map (partitionByNumber columnDimension)
+    |> List.map (List.map (sortByDimension sortDimension))
 
 partitionByNumber : Dimension -> List Wand -> List (List Wand)
 partitionByNumber dim wands =
@@ -110,3 +113,7 @@ partitionByNumber dim wands =
           |> (\list -> Array.set value list sorted)
     ) (Array.initialize (List.length (Wand.values dim)) (always [])) wands
   |> Array.toList
+
+sortByDimension : Dimension -> List Wand -> List Wand
+sortByDimension dim wands =
+  List.sortBy (Wand.attribute dim) wands

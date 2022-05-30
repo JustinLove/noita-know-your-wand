@@ -20,6 +20,7 @@ type alias Model =
   { wands : List Wand
   , rowDimension : Dimension
   , columnDimension : Dimension
+  , sortDimension : Dimension
   }
 
 main = Browser.document
@@ -33,7 +34,8 @@ init : () -> (Model, Cmd Msg)
 init flags =
   ( { wands = []
     , rowDimension = CastDelay
-    , columnDimension = Slots
+    , columnDimension = ReloadTime
+    , sortDimension = Slots
     }
   , fetchWands)
 
@@ -45,6 +47,8 @@ update msg model =
       ({model | rowDimension = dim}, Cmd.none)
     UI (View.ChangedColumns dim) ->
       ({model | columnDimension = dim}, Cmd.none)
+    UI (View.ChangedSort dim) ->
+      ({model | sortDimension = dim}, Cmd.none)
     GotWands (Ok wands) ->
       ({model | wands = wands}, Cmd.none)
     GotWands (Err error) ->
