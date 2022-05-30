@@ -1,4 +1,4 @@
-.wand-sprite img { transform: scale(4) translate(20px, 0%); }
+.wand-sprite img { transform: scale(2) translate(10px, 0%); }
 
 .crisp img, .crisp canvas, .crisp {
   image-rendering: optimizeSpeed;             /*                     */

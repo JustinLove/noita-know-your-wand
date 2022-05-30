@@ -30,8 +30,12 @@ document tagger model =
   }
 
 view model =
-  layout [] <|
-    column []
+  layout
+    [ width fill
+    ] <|
+    column
+      [ width fill
+      ]
       [ (text "Noita, know your wand")
       , model.wands
         --|> List.take 20
@@ -42,26 +46,38 @@ view model =
         --|> partitionByNumber .actions 3
         --|> partitionByNumber .spread 3
         --|> partitionByNumber .shuffle 2
-        |> displayPartitionedWandList
+        |> List.map (partitionByNumber .deckCapacity 8)
+        |> displayWandTable
       ]
 
-displayPartitionedWandList : List (List Wand) -> Element Msg
-displayPartitionedWandList wands =
-  column []
+displayWandTable : List (List (List Wand)) -> Element Msg
+displayWandTable wands =
+  column
+    [ width fill
+    ]
+    (List.map displayWandRow wands)
+
+displayWandRow : List (List Wand) -> Element Msg
+displayWandRow wands =
+  row
+    [ width fill
+    ]
     (List.map displayWandList wands)
 
 displayWandList : List Wand -> Element Msg
 displayWandList wands =
   wrappedRow
     [ Border.width 1
+    , width fill
+    , alignTop
     ]
     (List.map displayWand wands)
 
 displayWand : Wand -> Element Msg
 displayWand wand =
   row
-    [ height (px 40)
-    , width (px 100)
+    [ height (px 20)
+    , width (px 50)
     ]
     [ image
       [ htmlAttribute <| Html.Attributes.class "wand-sprite"
