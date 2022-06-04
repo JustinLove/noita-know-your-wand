@@ -1,3 +1,8 @@
+- multiattribute partitions
+  - partition on list of dimensions
+  - pivot radios
+  - drag and drop
+- labels
 - choose nothing for dimension
-- filter to attribute
 - dark background
+- filter to attribute?

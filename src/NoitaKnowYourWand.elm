@@ -18,9 +18,9 @@ type Msg
 
 type alias Model =
   { wands : List Wand
-  , rowDimension : Dimension
-  , columnDimension : Dimension
-  , sortDimension : Dimension
+  , rowDimension : List Dimension
+  , columnDimension : List Dimension
+  , sortDimension : List Dimension
   }
 
 main = Browser.document
@@ -33,9 +33,9 @@ main = Browser.document
 init : () -> (Model, Cmd Msg)
 init flags =
   ( { wands = []
-    , rowDimension = CastDelay
-    , columnDimension = ReloadTime
-    , sortDimension = Slots
+    , rowDimension = [CastDelay]
+    , columnDimension = [ReloadTime]
+    , sortDimension = [Slots]
     }
   , fetchWands)
 
@@ -44,11 +44,11 @@ update msg model =
     UI (View.None) ->
       (model, Cmd.none)
     UI (View.ChangedRows dim) ->
-      ({model | rowDimension = dim}, Cmd.none)
+      ({model | rowDimension = [dim]}, Cmd.none)
     UI (View.ChangedColumns dim) ->
-      ({model | columnDimension = dim}, Cmd.none)
+      ({model | columnDimension = [dim]}, Cmd.none)
     UI (View.ChangedSort dim) ->
-      ({model | sortDimension = dim}, Cmd.none)
+      ({model | sortDimension = [dim]}, Cmd.none)
     GotWands (Ok wands) ->
       ({model | wands = wands}, Cmd.none)
     GotWands (Err error) ->

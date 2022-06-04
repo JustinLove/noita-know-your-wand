@@ -16,6 +16,11 @@ type Msg
   | ChangedColumns Dimension
   | ChangedSort Dimension
 
+type Expressions
+  = Rows
+  | Columns
+  | Sort
+
 document tagger model =
   { title = "Noita, Know Your Wand"
   , body = [Html.map tagger (view model)]
@@ -30,9 +35,9 @@ view model =
       [ width fill
       ]
       [ (text "Noita, know your wand")
-      , dimensionSelect ChangedRows "Rows" model.rowDimension
-      , dimensionSelect ChangedColumns "Columns" model.columnDimension
-      , dimensionSelect ChangedSort "Sort" model.sortDimension
+      , dimensionSelect ChangedRows "Rows" (List.head model.rowDimension |> Maybe.withDefault Slots)
+      , dimensionSelect ChangedColumns "Columns" (List.head model.columnDimension |> Maybe.withDefault Slots)
+      , dimensionSelect ChangedSort "Sort" (List.head model.sortDimension |> Maybe.withDefault Slots)
       , model.wands
         --|> List.take 20
         --|> List.singleton
@@ -96,12 +101,21 @@ dimensionSelect tagger title dim =
       ]
     }
 
-partitionTable : Dimension -> Dimension -> Dimension -> List Wand -> List (List (List Wand))
-partitionTable rowDimension columnDimension sortDimension wands =
+partitionTable : List Dimension -> List Dimension -> List Dimension -> List Wand -> List (List (List Wand))
+partitionTable rowDimensions columnDimensions sortDimensions wands =
   wands
-    |> partitionByNumber rowDimension
-    |> List.map (partitionByNumber columnDimension)
-    |> List.map (List.map (sortByDimension sortDimension))
+    |> multiPartition rowDimensions
+    |> List.map (multiPartition columnDimensions)
+    |> List.map (List.map (\list -> List.foldr sortByDimension list sortDimensions))
+
+multiPartition : List Dimension -> List Wand -> List (List Wand)
+multiPartition dimensions wands =
+  case dimensions of
+    dimension :: rest ->
+      partitionByNumber dimension wands
+        |> List.concatMap (multiPartition rest)
+    [] ->
+      [wands]
 
 partitionByNumber : Dimension -> List Wand -> List (List Wand)
 partitionByNumber dim wands =

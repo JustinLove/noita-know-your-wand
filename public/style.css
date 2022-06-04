@@ -1,3 +1,4 @@
+html { background-color: #333333 }
 .wand-sprite img { transform: scale(2) translate(10px, 0%); }
 
 .crisp img, .crisp canvas, .crisp {
