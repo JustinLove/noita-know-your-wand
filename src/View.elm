@@ -1,4 +1,4 @@
-module View exposing (Msg(..), document, view)
+module View exposing (Msg(..), document, view, Expression(..))
 
 import Wand exposing (Wand, Dimension(..))
 
@@ -12,11 +12,9 @@ import Html.Attributes
 
 type Msg
   = None
-  | ChangedRows Dimension
-  | ChangedColumns Dimension
-  | ChangedSort Dimension
+  | ChangedExpression Dimension Expression
 
-type Expressions
+type Expression
   = Rows
   | Columns
   | Sort
@@ -35,9 +33,12 @@ view model =
       [ width fill
       ]
       [ (text "Noita, know your wand")
-      , dimensionSelect ChangedRows "Rows" (List.head model.rowDimension |> Maybe.withDefault Slots)
-      , dimensionSelect ChangedColumns "Columns" (List.head model.columnDimension |> Maybe.withDefault Slots)
-      , dimensionSelect ChangedSort "Sort" (List.head model.sortDimension |> Maybe.withDefault Slots)
+      , expressionSelect (ChangedExpression CastDelay) "Cast Delay" (currentExpression model CastDelay)
+      , expressionSelect (ChangedExpression Actions) "Actions" (currentExpression model Actions)
+      , expressionSelect (ChangedExpression Shuffle) "Shuffle" (currentExpression model Shuffle)
+      , expressionSelect (ChangedExpression Slots) "Slots" (currentExpression model Slots)
+      , expressionSelect (ChangedExpression Spread) "Spread" (currentExpression model Spread)
+      , expressionSelect (ChangedExpression ReloadTime) "Reload Time" (currentExpression model ReloadTime)
       , model.wands
         --|> List.take 20
         --|> List.singleton
@@ -83,23 +84,29 @@ displayWand wand =
       }
     ]
 
-dimensionSelect : (Dimension -> Msg) -> String -> Dimension-> Element Msg
-dimensionSelect tagger title dim =
+expressionSelect : (Expression -> Msg) -> String -> Expression -> Element Msg
+expressionSelect tagger title exp =
   Input.radioRow
     [ spacing 10 
     ]
     { onChange = tagger
-    , selected = Just dim
+    , selected = Just exp
     , label = Input.labelRight [] (text title)
     , options =
-      [ Input.option CastDelay (text "Cast Delay")
-      , Input.option Actions (text "Actions")
-      , Input.option Shuffle (text "Shuffle")
-      , Input.option Slots (text "Slots")
-      , Input.option Spread (text "Spread")
-      , Input.option ReloadTime (text "ReloadTime")
+      [ Input.option Rows (text "Rows")
+      , Input.option Columns (text "Columns")
+      , Input.option Sort (text "Sort")
       ]
     }
+
+--currentExpression : Model -> Dimension -> Expression
+currentExpression model dim =
+  if List.member dim model.rowDimension then
+    Rows
+  else if List.member dim model.columnDimension then
+    Columns
+  else
+    Sort
 
 partitionTable : List Dimension -> List Dimension -> List Dimension -> List Wand -> List (List (List Wand))
 partitionTable rowDimensions columnDimensions sortDimensions wands =

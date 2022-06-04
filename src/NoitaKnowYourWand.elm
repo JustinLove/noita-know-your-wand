@@ -1,6 +1,6 @@
 module NoitaKnowYourWand exposing (..)
 
-import View
+import View exposing (Expression(..))
 import Wand exposing (Wand, Dimension(..))
 
 import Log
@@ -43,12 +43,26 @@ update msg model =
   case msg of
     UI (View.None) ->
       (model, Cmd.none)
-    UI (View.ChangedRows dim) ->
-      ({model | rowDimension = [dim]}, Cmd.none)
-    UI (View.ChangedColumns dim) ->
-      ({model | columnDimension = [dim]}, Cmd.none)
-    UI (View.ChangedSort dim) ->
-      ({model | sortDimension = [dim]}, Cmd.none)
+    UI (View.ChangedExpression dim exp) ->
+      case exp of
+        Rows ->
+          ( { model
+            | rowDimension = List.reverse (dim :: (List.reverse model.rowDimension))
+            , columnDimension = List.filter (\x -> x /= dim) model.columnDimension
+            , sortDimension = List.filter (\x -> x /= dim) model.sortDimension
+          }, Cmd.none)
+        Columns ->
+          ( { model
+            | rowDimension = List.filter (\x -> x /= dim) model.rowDimension
+            , columnDimension = List.reverse (dim :: (List.reverse model.columnDimension))
+            , sortDimension = List.filter (\x -> x /= dim) model.sortDimension
+          }, Cmd.none)
+        Sort ->
+          ( { model
+            | rowDimension = List.filter (\x -> x /= dim) model.rowDimension
+            , columnDimension = List.filter (\x -> x /= dim) model.columnDimension
+            , sortDimension = List.reverse (dim :: (List.reverse model.sortDimension))
+          }, Cmd.none)
     GotWands (Ok wands) ->
       ({model | wands = wands}, Cmd.none)
     GotWands (Err error) ->
