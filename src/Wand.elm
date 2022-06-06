@@ -71,3 +71,13 @@ values dim =
       , "0.5-1"
       , ">1"
       ]
+
+name : Dimension -> String
+name dim =
+  case dim of
+    CastDelay -> "Cast Delay"
+    Actions -> "Actions"
+    Shuffle -> "Shuffle"
+    Slots -> "Slots"
+    Spread -> "Spread"
+    ReloadTime -> "Reload Time"

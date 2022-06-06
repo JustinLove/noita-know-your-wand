@@ -1,8 +1,10 @@
-module View exposing (Msg(..), document, view, Expression(..))
+module View exposing (Msg(..), document, view, Expression(..), DropTarget(..))
 
 import Wand exposing (Wand, Dimension(..))
 
 import Array
+import Dom
+import Dom.DragDrop as DragDrop
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -12,12 +14,27 @@ import Html.Attributes
 
 type Msg
   = None
-  | ChangedExpression Dimension Expression
+  | DragStarted Dimension
+  | DragTargetChanged DropTarget
+  | DragCanceled
+  | DragCompleted Dimension DropTarget
+
+dragMessages : DragDrop.Messages Msg Dimension DropTarget
+dragMessages =
+  { dragStarted = DragStarted
+  , dropTargetChanged = DragTargetChanged
+  , dragEnded = DragCanceled
+  , dropped = DragCompleted
+  }
 
 type Expression
   = Rows
   | Columns
   | Sort
+
+type DropTarget
+  = OntoElement Expression Dimension
+  | EndOfList Expression
 
 document tagger model =
   { title = "Noita, Know Your Wand"
@@ -33,12 +50,9 @@ view model =
       [ width fill
       ]
       [ (text "Noita, know your wand")
-      , expressionSelect (ChangedExpression CastDelay) "Cast Delay" (currentExpression model CastDelay)
-      , expressionSelect (ChangedExpression Actions) "Actions" (currentExpression model Actions)
-      , expressionSelect (ChangedExpression Shuffle) "Shuffle" (currentExpression model Shuffle)
-      , expressionSelect (ChangedExpression Slots) "Slots" (currentExpression model Slots)
-      , expressionSelect (ChangedExpression Spread) "Spread" (currentExpression model Spread)
-      , expressionSelect (ChangedExpression ReloadTime) "Reload Time" (currentExpression model ReloadTime)
+      , expressionBox Rows "Rows" model.rowDimension model.dragDropState
+      , expressionBox Columns "Columns" model.columnDimension model.dragDropState
+      , expressionBox Sort "Sort" model.sortDimension model.dragDropState
       , model.wands
         --|> List.take 20
         --|> List.singleton
@@ -84,20 +98,62 @@ displayWand wand =
       }
     ]
 
-expressionSelect : (Expression -> Msg) -> String -> Expression -> Element Msg
-expressionSelect tagger title exp =
-  Input.radioRow
-    [ spacing 10 
+displayDimension : Dimension -> Element Msg
+displayDimension dim =
+  el
+    [ Background.color (rgb 0.5 0.5 0.5)
+    , padding 10
     ]
-    { onChange = tagger
-    , selected = Just exp
-    , label = Input.labelRight [] (text title)
-    , options =
-      [ Input.option Rows (text "Rows")
-      , Input.option Columns (text "Columns")
-      , Input.option Sort (text "Sort")
+    (text (Wand.name dim))
+
+domDimension : Dimension -> Dom.Element Msg
+domDimension dim =
+  Dom.element "div"
+    |> Dom.appendText (Wand.name dim)
+    |> Dom.addClass "dom-dimension"
+
+domEndOfList : Dom.Element Msg
+domEndOfList =
+  Dom.element "div"
+    |> Dom.addClass "dom-end"
+
+uiToDom : Element Msg -> Dom.Element Msg
+uiToDom el =
+  Dom.element "div"
+    |> Dom.appendNode (layout [] el)
+
+domToUi : Dom.Element Msg -> Element Msg
+domToUi dom =
+  Dom.render dom
+    |> html
+
+draggableDimension : DragDrop.State Dimension DropTarget -> Expression -> Dimension -> Element Msg
+draggableDimension state exp dim =
+  (domDimension dim)
+    |> DragDrop.makeDraggable state dim dragMessages
+    |> DragDrop.makeDroppable state (OntoElement exp dim) dragMessages
+    |> domToUi
+    |> el []
+
+draggableEndOfList : DragDrop.State Dimension DropTarget -> Expression -> Element Msg
+draggableEndOfList state exp =
+  domEndOfList
+    |> DragDrop.makeDroppable state (EndOfList exp) dragMessages
+    |> domToUi
+    |> el [ width fill ]
+
+expressionBox : Expression -> String -> List Dimension -> DragDrop.State Dimension DropTarget -> Element Msg
+expressionBox exp title dims state =
+  column [ width fill ]
+    [ text title
+    , row
+      [ Border.width 1
+      , height (px 50)
+      , spacing 10
+      , width fill
       ]
-    }
+      ((List.map (draggableDimension state exp) dims) ++ [draggableEndOfList state exp])
+    ]
 
 --currentExpression : Model -> Dimension -> Expression
 currentExpression model dim =

@@ -11,6 +11,15 @@ html { background-color: #333333 }
   -ms-interpolation-mode: nearest-neighbor;   /* IE8+                */
   }
 
+.dom-dimension {
+  background-color: #888;
+  padding: 10px;
+}
+
+.dom-end {
+  padding: 10px;
+  height: 30px;
+}
 
 footer { position: fixed; bottom: 0;}
 svg.icon {

@@ -1,14 +1,14 @@
 module NoitaKnowYourWand exposing (..)
 
-import View exposing (Expression(..))
-import Wand exposing (Wand, Dimension(..))
-
 import Log
 import LuaData
 import LuaData.Parser
 import LuaData.Decode
+import View exposing (Expression(..), DropTarget(..))
+import Wand exposing (Wand, Dimension(..))
 
 import Browser
+import Dom.DragDrop as DragDrop
 import Http
 import Parser.Advanced as Parser
 
@@ -21,6 +21,7 @@ type alias Model =
   , rowDimension : List Dimension
   , columnDimension : List Dimension
   , sortDimension : List Dimension
+  , dragDropState : DragDrop.State Dimension DropTarget
   }
 
 main = Browser.document
@@ -35,7 +36,8 @@ init flags =
   ( { wands = []
     , rowDimension = [CastDelay]
     , columnDimension = [ReloadTime]
-    , sortDimension = [Slots]
+    , sortDimension = [Slots, Actions, Shuffle, Spread]
+    , dragDropState = DragDrop.initialState
     }
   , fetchWands)
 
@@ -43,25 +45,46 @@ update msg model =
   case msg of
     UI (View.None) ->
       (model, Cmd.none)
-    UI (View.ChangedExpression dim exp) ->
+    UI (View.DragStarted dim) ->
+      ( { model
+        | dragDropState = DragDrop.startDragging model.dragDropState dim
+        }
+      , Cmd.none)
+    UI (View.DragTargetChanged drop) ->
+      ( { model
+        | dragDropState = DragDrop.updateDropTarget model.dragDropState drop
+        }
+      , Cmd.none)
+    UI (View.DragCanceled) ->
+      ( { model
+        | dragDropState = DragDrop.stopDragging model.dragDropState
+        }
+      , Cmd.none)
+    UI (View.DragCompleted dim drop) ->
+      let
+        exp = case drop of
+          OntoElement e d -> e
+          EndOfList e -> e
+        m2 =
+          { model
+          | rowDimension = List.filter (\x -> x /= dim) model.rowDimension
+          , columnDimension = List.filter (\x -> x /= dim) model.columnDimension
+          , sortDimension = List.filter (\x -> x /= dim) model.sortDimension
+          , dragDropState = DragDrop.stopDragging model.dragDropState
+          }
+      in
       case exp of
         Rows ->
-          ( { model
-            | rowDimension = List.reverse (dim :: (List.reverse model.rowDimension))
-            , columnDimension = List.filter (\x -> x /= dim) model.columnDimension
-            , sortDimension = List.filter (\x -> x /= dim) model.sortDimension
+          ( { m2
+            | rowDimension = List.reverse (dim :: (List.reverse m2.rowDimension))
           }, Cmd.none)
         Columns ->
-          ( { model
-            | rowDimension = List.filter (\x -> x /= dim) model.rowDimension
-            , columnDimension = List.reverse (dim :: (List.reverse model.columnDimension))
-            , sortDimension = List.filter (\x -> x /= dim) model.sortDimension
+          ( { m2
+            | columnDimension = List.reverse (dim :: (List.reverse m2.columnDimension))
           }, Cmd.none)
         Sort ->
-          ( { model
-            | rowDimension = List.filter (\x -> x /= dim) model.rowDimension
-            , columnDimension = List.filter (\x -> x /= dim) model.columnDimension
-            , sortDimension = List.reverse (dim :: (List.reverse model.sortDimension))
+          ( { m2
+            | sortDimension = List.reverse (dim :: (List.reverse m2.sortDimension))
           }, Cmd.none)
     GotWands (Ok wands) ->
       ({model | wands = wands}, Cmd.none)
