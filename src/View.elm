@@ -99,7 +99,14 @@ displayColumnHeader below dim =
 displayColumnLabelAndBelow : List Dimension -> String -> Element Msg
 displayColumnLabelAndBelow below name =
   column
-    [ width fill ]
+    [ width fill
+    , Border.widthEach
+      { bottom = 0
+      , left = 0
+      , right = 1
+      , top = 0
+      }
+    ]
     [ displayLabel name
     , displayColumnHeaders below
     ]
@@ -126,7 +133,14 @@ displayRowHeader below dim =
 displayRowLabelAndBelow : List Dimension -> String -> Element Msg
 displayRowLabelAndBelow below name =
   row
-    [ height fill ]
+    [ height fill
+    , Border.widthEach
+      { bottom = 1
+      , left = 0
+      , right = 0
+      , top = 0
+      }
+    ]
     [ displayLabel name
     , displayRowHeaders below
     ]
@@ -137,7 +151,7 @@ displayLabel name =
     [ width (minimum 50 fill)
     , height (minimum 20 fill)
     ]
-    (text name)
+    (el [ centerX, centerY ] (text name))
 
 displayWandTable : List (List (List Wand)) -> Element Msg
 displayWandTable wands =

@@ -1,3 +1,4 @@
-- label alignment/borders
+- row labels not aligned
+- label borders
 - colors
 - filter to attribute?
