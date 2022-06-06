@@ -34,9 +34,9 @@ main = Browser.document
 init : () -> (Model, Cmd Msg)
 init flags =
   ( { wands = []
-    , rowDimension = [CastDelay]
-    , columnDimension = [ReloadTime]
-    , sortDimension = [Slots, Actions, Shuffle, Spread]
+    , rowDimension = [Slots, Actions]
+    , columnDimension = [CastDelay, Shuffle, ReloadTime]
+    , sortDimension = [Spread]
     , dragDropState = DragDrop.initialState
     }
   , fetchWands)

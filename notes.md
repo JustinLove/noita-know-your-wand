@@ -1,3 +1,3 @@
-- labels
+- label alignment/borders
 - colors
 - filter to attribute?

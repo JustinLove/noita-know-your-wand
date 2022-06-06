@@ -53,12 +53,91 @@ view model =
       , expressionBox Rows "Rows" model.rowDimension model.dragDropState
       , expressionBox Columns "Columns" model.columnDimension model.dragDropState
       , expressionBox Sort "Sort" model.sortDimension model.dragDropState
-      , model.wands
-        --|> List.take 20
-        --|> List.singleton
-        |> partitionTable model.rowDimension model.columnDimension model.sortDimension
-        |> displayWandTable
+      , row [ width fill ]
+        [ column
+          [ height fill ]
+          [ el
+            [ height (px ((List.length model.columnDimension) * 20))
+            ]
+            none
+          , model.rowDimension
+              |> displayRowHeaders
+          ]
+        , column
+          [ width fill
+          ]
+          [ model.columnDimension
+            |> displayColumnHeaders
+          , model.wands
+            --|> List.take 20
+            --|> List.singleton
+            |> partitionTable model.rowDimension model.columnDimension model.sortDimension
+            |> displayWandTable
+          ]
+        ]
       ]
+
+displayColumnHeaders : List Dimension -> Element Msg
+displayColumnHeaders dimensions =
+  column
+    [ width fill
+    ]
+    ( case dimensions of
+        head :: rest ->
+          [(displayColumnHeader rest head)]
+        [] ->
+          []
+    )
+
+displayColumnHeader : List Dimension -> Dimension -> Element Msg
+displayColumnHeader below dim =
+  row
+    [ width fill
+    ]
+    (List.map (displayColumnLabelAndBelow below) (Wand.values dim))
+
+displayColumnLabelAndBelow : List Dimension -> String -> Element Msg
+displayColumnLabelAndBelow below name =
+  column
+    [ width fill ]
+    [ displayLabel name
+    , displayColumnHeaders below
+    ]
+
+displayRowHeaders : List Dimension -> Element Msg
+displayRowHeaders dimensions =
+  row
+    [ height fill
+    ]
+    ( case dimensions of
+        head :: rest ->
+          [(displayRowHeader rest head)]
+        [] ->
+          []
+    )
+
+displayRowHeader : List Dimension -> Dimension -> Element Msg
+displayRowHeader below dim =
+  column
+    [ height fill
+    ]
+    (List.map (displayRowLabelAndBelow below) (Wand.values dim))
+
+displayRowLabelAndBelow : List Dimension -> String -> Element Msg
+displayRowLabelAndBelow below name =
+  row
+    [ height fill ]
+    [ displayLabel name
+    , displayRowHeaders below
+    ]
+
+displayLabel : String -> Element Msg
+displayLabel name =
+  el
+    [ width (minimum 50 fill)
+    , height (minimum 20 fill)
+    ]
+    (text name)
 
 displayWandTable : List (List (List Wand)) -> Element Msg
 displayWandTable wands =
@@ -78,7 +157,8 @@ displayWandList : List Wand -> Element Msg
 displayWandList wands =
   wrappedRow
     [ Border.width 1
-    , width fill
+    , width (minimum 50 fill)
+    --, height (minimum 20 fill)
     , alignTop
     ]
     (List.map displayWand wands)
