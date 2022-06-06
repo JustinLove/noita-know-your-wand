@@ -61,35 +61,78 @@ update msg model =
         }
       , Cmd.none)
     UI (View.DragCompleted dim drop) ->
-      let
-        exp = case drop of
-          OntoElement e d -> e
-          EndOfList e -> e
-        m2 =
-          { model
-          | rowDimension = List.filter (\x -> x /= dim) model.rowDimension
-          , columnDimension = List.filter (\x -> x /= dim) model.columnDimension
-          , sortDimension = List.filter (\x -> x /= dim) model.sortDimension
-          , dragDropState = DragDrop.stopDragging model.dragDropState
-          }
-      in
-      case exp of
-        Rows ->
-          ( { m2
-            | rowDimension = List.reverse (dim :: (List.reverse m2.rowDimension))
-          }, Cmd.none)
-        Columns ->
-          ( { m2
-            | columnDimension = List.reverse (dim :: (List.reverse m2.columnDimension))
-          }, Cmd.none)
-        Sort ->
-          ( { m2
-            | sortDimension = List.reverse (dim :: (List.reverse m2.sortDimension))
-          }, Cmd.none)
+      ( { model | dragDropState = DragDrop.stopDragging model.dragDropState }
+        |> removeFromExpressions dim
+        |> dropOperation dim drop
+      , Cmd.none
+      )
     GotWands (Ok wands) ->
       ({model | wands = wands}, Cmd.none)
     GotWands (Err error) ->
       (model, Log.httpError "fetch error: wands" error)
+
+removeFromExpressions : Dimension -> Model -> Model
+removeFromExpressions dim model =
+  { model
+  | rowDimension = List.filter (\x -> x /= dim) model.rowDimension
+  , columnDimension = List.filter (\x -> x /= dim) model.columnDimension
+  , sortDimension = List.filter (\x -> x /= dim) model.sortDimension
+  }
+
+dropOperation : Dimension -> DropTarget -> Model -> Model
+dropOperation insert drop model =
+  case drop of
+    OntoElement exp before ->
+      insertBefore exp insert before model
+    EndOfList exp ->
+      appendToExpression exp insert model
+
+appendToExpression : Expression -> Dimension -> Model -> Model
+appendToExpression exp dim model =
+  case exp of
+    Rows ->
+      { model
+      | rowDimension = listAppend dim model.rowDimension
+      }
+    Columns ->
+      { model
+      | columnDimension = listAppend dim model.columnDimension
+      }
+    Sort ->
+      { model
+      | sortDimension = listAppend dim model.sortDimension
+      }
+
+listAppend : a -> List a -> List a
+listAppend x list =
+  List.reverse (x :: (List.reverse list))
+
+insertBefore : Expression -> Dimension -> Dimension -> Model -> Model
+insertBefore exp insert before model =
+  case exp of
+    Rows ->
+      { model
+      | rowDimension = listInsertBefore insert before model.rowDimension
+      }
+    Columns ->
+      { model
+      | columnDimension = listInsertBefore insert before model.columnDimension
+      }
+    Sort ->
+      { model
+      | sortDimension = listInsertBefore insert before model.sortDimension
+      }
+
+listInsertBefore : a -> a -> List a -> List a
+listInsertBefore insert before list =
+  case list of
+    head :: rest ->
+      if head == before then
+        insert :: head :: rest
+      else
+        head :: (listInsertBefore insert before rest)
+    [] ->
+      [insert]
 
 subscriptions : Model -> Sub Msg
 subscriptions model =

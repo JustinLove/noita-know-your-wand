@@ -1,4 +1,3 @@
-- reordering
 - labels
 - colors
 - filter to attribute?
