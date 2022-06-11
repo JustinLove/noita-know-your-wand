@@ -12,8 +12,12 @@ html { background-color: #333333 }
   }
 
 .dom-dimension {
-  background-color: #888;
+  background-color: #372724;
   padding: 10px;
+  border-color: #948064;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 5px;
 }
 
 .dom-end {

@@ -1,3 +1,4 @@
-- colors
+- layout
 - sprites as data url
+- stuck drags
 - filter to attribute?

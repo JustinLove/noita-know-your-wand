@@ -8,6 +8,7 @@ import Dom.DragDrop as DragDrop
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
+import Element.Font as Font
 import Element.Input as Input
 import Html exposing (Html)
 import Html.Attributes
@@ -45,7 +46,8 @@ document tagger model =
 view model =
   layout
     [ width fill
-    , Background.color (rgb 0.2 0.2 0.2)
+    , Background.color backgroundColor
+    , Font.color foregroundColor
     ] <|
     column
       [ width fill
@@ -58,15 +60,19 @@ view model =
       ]
 
 displayTable model =
-  PivotTable.pivotTable
-    { rowGroupFields = List.map dimensionLabel model.rowDimension
-    , colGroupFields = List.map dimensionLabel model.columnDimension
-    , aggregator = \wands -> List.foldr sortByDimension wands model.sortDimension
-    , viewRow = displayRowLabel
-    , viewCol = displayColumnLabel
-    , viewAgg = displayWandList
-    }
-    (PivotTable.makeTable model.wands)
+  el
+    [ Font.color headerColor
+    ]
+    (PivotTable.pivotTable
+      { rowGroupFields = List.map dimensionLabel model.rowDimension
+      , colGroupFields = List.map dimensionLabel model.columnDimension
+      , aggregator = \wands -> List.foldr sortByDimension wands model.sortDimension
+      , viewRow = displayRowLabel
+      , viewCol = displayColumnLabel
+      , viewAgg = displayWandList
+      }
+      (PivotTable.makeTable model.wands)
+    )
 
 dimensionLabel : Dimension -> (Wand -> String)
 dimensionLabel dim =
@@ -82,6 +88,7 @@ displayColumnLabel name =
   el
     [ width fill
     , height fill
+    , Border.color ruleColor
     , Border.widthEach
       { bottom = 0
       , left = 1
@@ -93,9 +100,11 @@ displayColumnLabel name =
 
 displayRowLabel : String -> Element Msg
 displayRowLabel name =
-  el
+  row
     [ width fill
     , height fill
+    , paddingXY 5 0
+    , Border.color ruleColor
     , Border.widthEach
       { bottom = 0
       , left = 0
@@ -103,37 +112,24 @@ displayRowLabel name =
       , top = 1
       }
     ]
-    (el
-      [ width fill
-      , height fill
-      , padding 5
-      ]
-      (el [ centerX, centerY ] (text name))
-    )
-
-displayWandTable : List (List (List Wand)) -> Element Msg
-displayWandTable wands =
-  column
-    [ width fill
-    ]
-    (List.map displayWandRow wands)
-
-displayWandRow : List (List Wand) -> Element Msg
-displayWandRow wands =
-  row
-    [ width fill
-    ]
-    (List.map displayWandList wands)
+    [el [ centerX, centerY ] (text name)]
 
 displayWandList : List Wand -> Element Msg
 displayWandList wands =
-  wrappedRow
-    [ Border.width 1
-    , width (minimum 50 fill)
-    --, height (minimum 20 fill)
-    , alignTop
-    ]
-    (List.map displayWand wands)
+  case wands of
+    _ :: _ ->
+      wrappedRow
+        [ Border.widthEach
+          { bottom = 0
+          , left = 1
+          , right = 0
+          , top = 1
+          }
+        , Border.color ruleColor
+        ]
+        (List.map displayWand wands)
+    _ ->
+      none
 
 displayWand : Wand -> Element Msg
 displayWand wand =
@@ -149,14 +145,6 @@ displayWand wand =
       , description = wand.file
       }
     ]
-
-displayDimension : Dimension -> Element Msg
-displayDimension dim =
-  el
-    [ Background.color (rgb 0.5 0.5 0.5)
-    , padding 10
-    ]
-    (text (Wand.name dim))
 
 domDimension : Dimension -> Dom.Element Msg
 domDimension dim =
@@ -185,7 +173,7 @@ draggableDimension state exp dim =
     |> DragDrop.makeDraggable state dim dragMessages
     |> DragDrop.makeDroppable state (OntoElement exp dim) dragMessages
     |> domToUi
-    |> el []
+    |> el [ ]
 
 draggableEndOfList : DragDrop.State Dimension DropTarget -> Expression -> Element Msg
 draggableEndOfList state exp =
@@ -197,11 +185,18 @@ draggableEndOfList state exp =
 expressionBox : Expression -> String -> List Dimension -> DragDrop.State Dimension DropTarget -> Element Msg
 expressionBox exp title dims state =
   column [ width fill ]
-    [ text title
+    [ el
+      [ Font.color titleColor
+      ]
+      (text title)
     , row
-      [ Border.width 1
-      , height (px 50)
+      [ Border.width 2
+      , Border.color dropBorderColor
+      , Background.color dropBackgroundColor
+      , Border.rounded 2
+      , height (px 55)
       , spacing 10
+      , padding 5
       , width fill
       ]
       ((List.map (draggableDimension state exp) dims) ++ [draggableEndOfList state exp])
@@ -210,3 +205,16 @@ expressionBox exp title dims state =
 sortByDimension : Dimension -> List Wand -> List Wand
 sortByDimension dim wands =
   List.sortBy (Wand.attribute dim) wands
+
+foregroundColor = rgb 0.812 0.812 0.812
+backgroundColor = rgb 0.067 0.067 0.063
+headerColor = rgb 0.439 0.431 0.431
+titleColor = rgb 0.7 0.7 0.7
+ruleColor = rgb 0.25 0.25 0.25
+
+dropBackgroundColor = rgb 0.184 0.149 0.133
+--dropBackgroundColor = rgb 0.133 0.161 0.2
+dropBorderColor = rgb 0.58 0.502 0.392
+--dragBackgroundColor = rgb 0.216 0.153 0.141
+--dragBorderColor = rgb 0.31 0.196 0.177
+dragBorderColor = dropBorderColor
