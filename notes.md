@@ -1,4 +1,3 @@
-- rows at side
 - visiblity eyes
 - margins etc
 - sprites as data url

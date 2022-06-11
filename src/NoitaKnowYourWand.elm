@@ -8,14 +8,18 @@ import View exposing (Expression(..), DropTarget(..))
 import Wand exposing (Wand, Dimension(..))
 
 import Browser
+import Browser.Dom as Dom
+import Browser.Events
 import Dom.DragDrop as DragDrop
 import Http
 import Parser.Advanced as Parser
 import PivotTable
+import Task
 
 type Msg
   = UI (View.Msg)
   | GotWands (Result Http.Error (List Wand))
+  | WindowSize (Int, Int)
 
 type alias Model =
   { wands : PivotTable.Table Wand
@@ -25,6 +29,8 @@ type alias Model =
   , dragDropState : DragDrop.State Dimension DropTarget
   , showingControls : Bool
   , showingHeaders : Bool
+  , windowWidth : Int
+  , windowHeight : Int
   }
 
 main = Browser.document
@@ -43,8 +49,20 @@ init flags =
     , dragDropState = DragDrop.initialState
     , showingControls = True
     , showingHeaders = True
+    , windowWidth = 320
+    , windowHeight = 200
     }
-  , fetchWands)
+  , Cmd.batch
+    [ fetchWands
+    , initialWindowSize
+    ]
+  )
+
+initialWindowSize : Cmd Msg
+initialWindowSize =
+  Dom.getViewport
+    |> Task.map (\viewport -> (round viewport.viewport.width, round viewport.viewport.height))
+    |> Task.perform WindowSize
 
 update msg model =
   case msg of
@@ -79,6 +97,11 @@ update msg model =
       ({model | wands = PivotTable.makeTable wands}, Cmd.none)
     GotWands (Err error) ->
       (model, Log.httpError "fetch error: wands" error)
+    WindowSize (width, height) ->
+      let _ = Debug.log "width" width in
+      ( {model | windowWidth = width, windowHeight = height}
+      , Cmd.none
+      )
 
 removeFromExpressions : Dimension -> Model -> Model
 removeFromExpressions dim model =
@@ -145,7 +168,7 @@ listInsertBefore insert before list =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Sub.none
+  Browser.Events.onResize (\w h -> WindowSize (w, h))
 
 myWands : LuaData.Decode.Decoder (List Wand)
 myWands =

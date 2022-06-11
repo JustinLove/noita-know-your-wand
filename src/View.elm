@@ -23,6 +23,8 @@ type Msg
   | ToggleControls
   | ToggleHeaders
 
+narrowWidth = 640
+
 dragMessages : DragDrop.Messages Msg Dimension DropTarget
 dragMessages =
   { dragStarted = DragStarted
@@ -62,7 +64,7 @@ view model =
       , row
         [ width fill
         ]
-        [ if model.showingControls then
+        [ if model.showingControls && model.windowWidth > narrowWidth then
             expressionColumn Rows "Rows" model.rowDimension model.dragDropState
           else
             none
@@ -118,7 +120,10 @@ displayControls model =
     [ width fill
     ]
     [ expressionRow Sort "Sort" model.sortDimension model.dragDropState
-    --, expressionRow Rows "Rows" model.rowDimension model.dragDropState
+    , if model.windowWidth <= narrowWidth then
+        expressionRow Rows "Rows" model.rowDimension model.dragDropState
+      else
+        none
     , expressionRow Columns "Columns" model.columnDimension model.dragDropState
     ]
 
