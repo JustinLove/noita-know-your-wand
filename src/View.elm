@@ -71,7 +71,7 @@ displayTable model =
       , viewCol = displayColumnLabel
       , viewAgg = displayWandList
       }
-      (PivotTable.makeTable model.wands)
+      model.wands
     )
 
 dimensionLabel : Dimension -> (Wand -> String)

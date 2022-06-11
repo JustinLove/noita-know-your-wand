@@ -11,13 +11,14 @@ import Browser
 import Dom.DragDrop as DragDrop
 import Http
 import Parser.Advanced as Parser
+import PivotTable
 
 type Msg
   = UI (View.Msg)
   | GotWands (Result Http.Error (List Wand))
 
 type alias Model =
-  { wands : List Wand
+  { wands : PivotTable.Table Wand
   , rowDimension : List Dimension
   , columnDimension : List Dimension
   , sortDimension : List Dimension
@@ -33,10 +34,10 @@ main = Browser.document
 
 init : () -> (Model, Cmd Msg)
 init flags =
-  ( { wands = []
-    , rowDimension = [Slots, Actions]
-    , columnDimension = [CastDelay, Shuffle, ReloadTime]
-    , sortDimension = [Spread]
+  ( { wands = PivotTable.makeTable []
+    , rowDimension = [CastDelay]
+    , columnDimension = [Actions, Shuffle]
+    , sortDimension = [Slots, Spread, ReloadTime]
     , dragDropState = DragDrop.initialState
     }
   , fetchWands)
@@ -67,7 +68,7 @@ update msg model =
       , Cmd.none
       )
     GotWands (Ok wands) ->
-      ({model | wands = wands}, Cmd.none)
+      ({model | wands = PivotTable.makeTable wands}, Cmd.none)
     GotWands (Err error) ->
       (model, Log.httpError "fetch error: wands" error)
 
