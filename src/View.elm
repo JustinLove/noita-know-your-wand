@@ -1,7 +1,8 @@
 module View exposing (Msg(..), document, view, Expression(..), DropTarget(..))
 
 import Wand exposing (Wand, Dimension(..))
-import Sprite.WandSprites exposing(wandSprites)
+import Sprite.WandSprites exposing (wandSprites)
+import Sprite.UiSprite exposing(..)
 
 import Array
 import Dict
@@ -224,7 +225,16 @@ displayWand wand =
 domDimension : Dimension -> Dom.Element Msg
 domDimension dim =
   Dom.element "div"
-    |> Dom.appendText (Wand.name dim)
+    |> Dom.appendChild
+      (Dom.element "img"
+        |> Dom.addAttribute (Html.Attributes.src (dimensionSprite dim))
+        |> Dom.addClass "dimension-sprite"
+        |> Dom.addClass "crisp"
+      )
+    |> Dom.appendChild
+      (Dom.element "span"
+        |> Dom.appendText (Wand.name dim)
+      )
     |> Dom.addClass "dom-dimension"
 
 domEndOfList : Dom.Element Msg
@@ -300,6 +310,16 @@ expressionColumn exp title dims state =
 sortByDimension : Dimension -> List Wand -> List Wand
 sortByDimension dim wands =
   List.sortBy (Wand.attribute dim) wands
+
+dimensionSprite : Dimension -> String
+dimensionSprite dim =
+  case dim of
+    CastDelay -> icon_fire_rate_wait
+    Actions -> icon_gun_actions_per_round
+    Shuffle -> icon_gun_shuffle
+    Slots -> icon_gun_actions_per_round
+    Spread -> icon_spread_degrees
+    ReloadTime -> icon_gun_reload_time
 
 foregroundColor = rgb 0.812 0.812 0.812
 backgroundColor = rgb 0.067 0.067 0.063
