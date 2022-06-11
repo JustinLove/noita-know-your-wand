@@ -110,10 +110,17 @@ displayToggleButton active {onPress, title} =
       row
         [ spacing 5
         ]
-        [ if active then
-            text "+"
-          else
-            text "-"
+        [ image
+          [ htmlAttribute <| Html.Attributes.class "eye-sprite"
+          , htmlAttribute <| Html.Attributes.class "crisp"
+          ]
+          { src =
+            if active then
+              icon_eye
+            else
+              icon_eye_closed
+          , description = ""
+          }
         , text title
         ]
     }

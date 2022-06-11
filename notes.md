@@ -1,6 +1,3 @@
-- dimension icons
-- visiblity eyes
-- dimension icons
 - margins etc
 - favicon
 - stuck drags
