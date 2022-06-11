@@ -59,7 +59,15 @@ view model =
           displayControls model
         else
           none
-      , displayTable model
+      , row
+        [ width fill
+        ]
+        [ if model.showingControls then
+            expressionColumn Rows "Rows" model.rowDimension model.dragDropState
+          else
+            none
+        , displayTable model
+        ]
       ]
 
 displayHeadline model =
@@ -109,14 +117,15 @@ displayControls model =
   column
     [ width fill
     ]
-    [ expressionBox Rows "Rows" model.rowDimension model.dragDropState
-    , expressionBox Columns "Columns" model.columnDimension model.dragDropState
-    , expressionBox Sort "Sort" model.sortDimension model.dragDropState
+    [ expressionRow Sort "Sort" model.sortDimension model.dragDropState
+    --, expressionRow Rows "Rows" model.rowDimension model.dragDropState
+    , expressionRow Columns "Columns" model.columnDimension model.dragDropState
     ]
 
 displayTable model =
   el
     [ Font.color headerColor
+    , width fill
     ]
     (PivotTable.pivotTable
       { rowGroupFields = List.map dimensionLabel model.rowDimension
@@ -240,8 +249,8 @@ draggableEndOfList state exp =
     |> domToUi
     |> el [ width fill ]
 
-expressionBox : Expression -> String -> List Dimension -> DragDrop.State Dimension DropTarget -> Element Msg
-expressionBox exp title dims state =
+expressionRow : Expression -> String -> List Dimension -> DragDrop.State Dimension DropTarget -> Element Msg
+expressionRow exp title dims state =
   column [ width fill ]
     [ el
       [ Font.color titleColor
@@ -256,6 +265,26 @@ expressionBox exp title dims state =
       , spacing 10
       , padding 5
       , width fill
+      ]
+      ((List.map (draggableDimension state exp) dims) ++ [draggableEndOfList state exp])
+    ]
+
+expressionColumn : Expression -> String -> List Dimension -> DragDrop.State Dimension DropTarget -> Element Msg
+expressionColumn exp title dims state =
+  column [ width shrink, height fill, alignTop ]
+    [ el
+      [ Font.color titleColor
+      ]
+      (text title)
+    , column
+      [ Border.width 2
+      , Border.color dropBorderColor
+      , Background.color dropBackgroundColor
+      , Border.rounded 2
+      , height (px 55)
+      , spacing 10
+      , padding 5
+      , height fill
       ]
       ((List.map (draggableDimension state exp) dims) ++ [draggableEndOfList state exp])
     ]
