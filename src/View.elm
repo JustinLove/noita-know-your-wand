@@ -11,6 +11,7 @@ import Element.Border as Border
 import Element.Input as Input
 import Html exposing (Html)
 import Html.Attributes
+import PivotTable
 
 type Msg
   = None
@@ -53,105 +54,62 @@ view model =
       , expressionBox Rows "Rows" model.rowDimension model.dragDropState
       , expressionBox Columns "Columns" model.columnDimension model.dragDropState
       , expressionBox Sort "Sort" model.sortDimension model.dragDropState
-      , row [ width fill ]
-        [ column
-          [ height fill ]
-          [ el
-            [ height (px ((List.length model.columnDimension) * 20))
-            ]
-            none
-          , model.rowDimension
-              |> displayRowHeaders
-          ]
-        , column
-          [ width fill
-          ]
-          [ model.columnDimension
-            |> displayColumnHeaders
-          , model.wands
-            --|> List.take 20
-            --|> List.singleton
-            |> partitionTable model.rowDimension model.columnDimension model.sortDimension
-            |> displayWandTable
-          ]
-        ]
+      , displayTable model
       ]
 
-displayColumnHeaders : List Dimension -> Element Msg
-displayColumnHeaders dimensions =
-  column
-    [ width fill
-    ]
-    ( case dimensions of
-        head :: rest ->
-          [(displayColumnHeader rest head)]
-        [] ->
-          []
+displayTable model =
+  PivotTable.pivotTable
+    { rowGroupFields = List.map dimensionLabel model.rowDimension
+    , colGroupFields = List.map dimensionLabel model.columnDimension
+    , aggregator = \wands -> List.foldr sortByDimension wands model.sortDimension
+    , viewRow = displayRowLabel
+    , viewCol = displayColumnLabel
+    , viewAgg = displayWandList
+    }
+    (PivotTable.makeTable model.wands)
+
+dimensionLabel : Dimension -> (Wand -> String)
+dimensionLabel dim =
+  (Wand.attribute dim) >> (\i ->
+    Wand.values dim
+      |> List.drop i
+      |> List.head
+      |> Maybe.withDefault ("invalid value "++(String.fromInt i))
     )
 
-displayColumnHeader : List Dimension -> Dimension -> Element Msg
-displayColumnHeader below dim =
-  row
+displayColumnLabel : String -> Element Msg
+displayColumnLabel name =
+  el
     [ width fill
-    ]
-    (List.map (displayColumnLabelAndBelow below) (Wand.values dim))
-
-displayColumnLabelAndBelow : List Dimension -> String -> Element Msg
-displayColumnLabelAndBelow below name =
-  column
-    [ width fill
+    , height fill
     , Border.widthEach
       { bottom = 0
-      , left = 0
-      , right = 1
-      , top = 0
-      }
-    ]
-    [ displayLabel name
-    , displayColumnHeaders below
-    ]
-
-displayRowHeaders : List Dimension -> Element Msg
-displayRowHeaders dimensions =
-  row
-    [ height fill
-    ]
-    ( case dimensions of
-        head :: rest ->
-          [(displayRowHeader rest head)]
-        [] ->
-          []
-    )
-
-displayRowHeader : List Dimension -> Dimension -> Element Msg
-displayRowHeader below dim =
-  column
-    [ height fill
-    ]
-    (List.map (displayRowLabelAndBelow below) (Wand.values dim))
-
-displayRowLabelAndBelow : List Dimension -> String -> Element Msg
-displayRowLabelAndBelow below name =
-  row
-    [ height fill
-    , Border.widthEach
-      { bottom = 1
-      , left = 0
+      , left = 1
       , right = 0
       , top = 0
       }
     ]
-    [ displayLabel name
-    , displayRowHeaders below
-    ]
-
-displayLabel : String -> Element Msg
-displayLabel name =
-  el
-    [ width (minimum 50 fill)
-    , height (minimum 20 fill)
-    ]
     (el [ centerX, centerY ] (text name))
+
+displayRowLabel : String -> Element Msg
+displayRowLabel name =
+  el
+    [ width fill
+    , height fill
+    , Border.widthEach
+      { bottom = 0
+      , left = 0
+      , right = 0
+      , top = 1
+      }
+    ]
+    (el
+      [ width fill
+      , height fill
+      , padding 5
+      ]
+      (el [ centerX, centerY ] (text name))
+    )
 
 displayWandTable : List (List (List Wand)) -> Element Msg
 displayWandTable wands =
@@ -248,44 +206,6 @@ expressionBox exp title dims state =
       ]
       ((List.map (draggableDimension state exp) dims) ++ [draggableEndOfList state exp])
     ]
-
---currentExpression : Model -> Dimension -> Expression
-currentExpression model dim =
-  if List.member dim model.rowDimension then
-    Rows
-  else if List.member dim model.columnDimension then
-    Columns
-  else
-    Sort
-
-partitionTable : List Dimension -> List Dimension -> List Dimension -> List Wand -> List (List (List Wand))
-partitionTable rowDimensions columnDimensions sortDimensions wands =
-  wands
-    |> multiPartition rowDimensions
-    |> List.map (multiPartition columnDimensions)
-    |> List.map (List.map (\list -> List.foldr sortByDimension list sortDimensions))
-
-multiPartition : List Dimension -> List Wand -> List (List Wand)
-multiPartition dimensions wands =
-  case dimensions of
-    dimension :: rest ->
-      partitionByNumber dimension wands
-        |> List.concatMap (multiPartition rest)
-    [] ->
-      [wands]
-
-partitionByNumber : Dimension -> List Wand -> List (List Wand)
-partitionByNumber dim wands =
-  List.foldl (\wand sorted ->
-      let
-        value = (Wand.attribute dim) wand
-      in
-        Array.get value sorted
-          |> Maybe.map (\list -> wand :: list)
-          |> Maybe.withDefault [wand]
-          |> (\list -> Array.set value list sorted)
-    ) (Array.initialize (List.length (Wand.values dim)) (always [])) wands
-  |> Array.toList
 
 sortByDimension : Dimension -> List Wand -> List Wand
 sortByDimension dim wands =

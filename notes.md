@@ -1,6 +1,3 @@
-- row labels not aligned
-  - pivot table lib?
-- label borders
-- sprites as data url
 - colors
+- sprites as data url
 - filter to attribute?
