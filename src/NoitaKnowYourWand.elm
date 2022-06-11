@@ -98,7 +98,6 @@ update msg model =
     GotWands (Err error) ->
       (model, Log.httpError "fetch error: wands" error)
     WindowSize (width, height) ->
-      let _ = Debug.log "width" width in
       ( {model | windowWidth = width, windowHeight = height}
       , Cmd.none
       )
@@ -180,10 +179,11 @@ myWand =
     with = LuaData.Decode.with
     field = LuaData.Decode.field
     string = LuaData.Decode.string
+    filename = string |> LuaData.Decode.map (\file -> String.replace "data/items_gfx/wands/" "" file)
     int = LuaData.Decode.int
   in
   LuaData.Decode.succeed Wand
-    |> with (field "file" string)
+    |> with (field "file" filename)
     |> with (field "grip_x" int)
     |> with (field "grip_y" int)
     |> with (field "tip_x" int)

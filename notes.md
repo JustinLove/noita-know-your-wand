@@ -1,5 +1,7 @@
+- dimension icons
 - visiblity eyes
+- dimension icons
 - margins etc
-- sprites as data url
+- favicon
 - stuck drags
 - filter to attribute?

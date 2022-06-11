@@ -1,8 +1,10 @@
 module View exposing (Msg(..), document, view, Expression(..), DropTarget(..))
 
 import Wand exposing (Wand, Dimension(..))
+import Sprite.WandSprites exposing(wandSprites)
 
 import Array
+import Dict
 import Dom
 import Dom.DragDrop as DragDrop
 import Element exposing (..)
@@ -213,7 +215,8 @@ displayWand wand =
       [ htmlAttribute <| Html.Attributes.class "wand-sprite"
       , htmlAttribute <| Html.Attributes.class "crisp"
       ]
-      { src = wand.file
+      { src = Dict.get wand.file wandSprites
+        |> Maybe.withDefault ""
       , description = wand.file
       }
     ]
