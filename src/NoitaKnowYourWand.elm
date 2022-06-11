@@ -23,6 +23,8 @@ type alias Model =
   , columnDimension : List Dimension
   , sortDimension : List Dimension
   , dragDropState : DragDrop.State Dimension DropTarget
+  , showingControls : Bool
+  , showingHeaders : Bool
   }
 
 main = Browser.document
@@ -39,6 +41,8 @@ init flags =
     , columnDimension = [Actions, Shuffle]
     , sortDimension = [Slots, Spread, ReloadTime]
     , dragDropState = DragDrop.initialState
+    , showingControls = True
+    , showingHeaders = True
     }
   , fetchWands)
 
@@ -67,6 +71,10 @@ update msg model =
         |> dropOperation dim drop
       , Cmd.none
       )
+    UI (View.ToggleControls) ->
+      ( { model | showingControls = not model.showingControls }, Cmd.none )
+    UI (View.ToggleHeaders) ->
+      ( { model | showingHeaders = not model.showingHeaders }, Cmd.none )
     GotWands (Ok wands) ->
       ({model | wands = PivotTable.makeTable wands}, Cmd.none)
     GotWands (Err error) ->

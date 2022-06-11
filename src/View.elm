@@ -20,6 +20,8 @@ type Msg
   | DragTargetChanged DropTarget
   | DragCanceled
   | DragCompleted Dimension DropTarget
+  | ToggleControls
+  | ToggleHeaders
 
 dragMessages : DragDrop.Messages Msg Dimension DropTarget
 dragMessages =
@@ -52,12 +54,65 @@ view model =
     column
       [ width fill
       ]
-      [ (text "Noita, know your wand")
-      , expressionBox Rows "Rows" model.rowDimension model.dragDropState
-      , expressionBox Columns "Columns" model.columnDimension model.dragDropState
-      , expressionBox Sort "Sort" model.sortDimension model.dragDropState
+      [ displayHeadline model
+      , if model.showingControls then
+          displayControls model
+        else
+          none
       , displayTable model
       ]
+
+displayHeadline model =
+  row
+    [ padding 12
+    , Font.size 24
+    , spacing 24
+    ]
+    [ text "Noita, know your wand"
+    , displayButtons model
+    ]
+
+displayButtons model =
+  row
+    [ spacing 12
+    , Font.size 16
+    , alignBottom
+    ]
+    [ displayToggleButton model.showingControls
+      { onPress = ToggleControls
+      , title = "Edit"
+      }
+    , displayToggleButton model.showingHeaders
+      { onPress = ToggleHeaders
+      , title = "Headers"
+      }
+    ]
+
+displayToggleButton : Bool -> {onPress : Msg, title : String } -> Element Msg
+displayToggleButton active {onPress, title} =
+  Input.button
+    [ ]
+    { onPress = Just onPress
+    , label =
+      row
+        [ spacing 5
+        ]
+        [ if active then
+            text "+"
+          else
+            text "-"
+        , text title
+        ]
+    }
+
+displayControls model =
+  column
+    [ width fill
+    ]
+    [ expressionBox Rows "Rows" model.rowDimension model.dragDropState
+    , expressionBox Columns "Columns" model.columnDimension model.dragDropState
+    , expressionBox Sort "Sort" model.sortDimension model.dragDropState
+    ]
 
 displayTable model =
   el
@@ -67,8 +122,8 @@ displayTable model =
       { rowGroupFields = List.map dimensionLabel model.rowDimension
       , colGroupFields = List.map dimensionLabel model.columnDimension
       , aggregator = \wands -> List.foldr sortByDimension wands model.sortDimension
-      , viewRow = displayRowLabel
-      , viewCol = displayColumnLabel
+      , viewRow = if model.showingHeaders then displayRowLabel else displayNoLabel
+      , viewCol = if model.showingHeaders then displayColumnLabel else displayNoLabel
       , viewAgg = displayWandList
       }
       model.wands
@@ -97,6 +152,9 @@ displayColumnLabel name =
       }
     ]
     (el [ centerX, centerY ] (text name))
+
+displayNoLabel : String -> Element Msg
+displayNoLabel _ = none
 
 displayRowLabel : String -> Element Msg
 displayRowLabel name =

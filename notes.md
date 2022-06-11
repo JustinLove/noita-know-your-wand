@@ -1,4 +1,6 @@
-- layout
+- rows at side
+- visiblity eyes
+- margins etc
 - sprites as data url
 - stuck drags
 - filter to attribute?
