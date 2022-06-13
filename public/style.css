@@ -1,6 +1,8 @@
 html { background-color: #111110 }
 .wand-sprite img { transform: scale(2) translate(10px, 0%); }
+.wand-sprite-detail img { transform: scale(4) rotate(270deg); }
 .dimension-sprite { width: 14px; margin-right: 0.3em; }
+.hoverbox { z-index: 1; }
 
 .crisp img, .crisp canvas, .crisp {
   image-rendering: optimizeSpeed;             /*                     */

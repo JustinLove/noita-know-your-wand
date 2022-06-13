@@ -48,7 +48,7 @@ values dim =
       , "3+"
       ]
     Shuffle ->
-      [ "Non"
+      [ "No"
       , "Sfl"
       ]
     Slots ->

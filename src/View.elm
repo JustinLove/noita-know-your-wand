@@ -1,4 +1,4 @@
-module View exposing (Msg(..), document, view, Expression(..), DropTarget(..))
+module View exposing (Msg(..), document, view, Expression(..), DropTarget(..), Focus(..))
 
 import Wand exposing (Wand, Dimension(..))
 import Sprite.WandSprites exposing (wandSprites)
@@ -15,6 +15,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Html exposing (Html)
 import Html.Attributes
+import Html.Events.Extra.Mouse as Mouse
 import PivotTable
 
 type Msg
@@ -25,6 +26,15 @@ type Msg
   | DragCompleted Dimension DropTarget
   | ToggleControls
   | ToggleHeaders
+  | WandOver Wand Mouse.Event
+  | WandOut Wand Mouse.Event
+
+type Focus
+  = Left Wand
+  | Right Wand
+  | EnterLeft Wand
+  | EnterRight Wand
+  | NoFocus
 
 narrowWidth = 640
 
@@ -56,6 +66,9 @@ view model =
     , Background.color backgroundColor
     , Font.color foregroundColor
     , paddingXY 10 0
+    --, inFront (case model.focusWand of
+        --Just wand -> displayWandDetails wand
+        --Nothing -> none)
     ] <|
     column
       [ width fill
@@ -152,7 +165,7 @@ displayTable model =
       , aggregator = \wands -> List.foldr sortByDimension wands model.sortDimension
       , viewRow = if model.showingHeaders then displayRowLabel else displayNoLabel
       , viewCol = if model.showingHeaders then displayColumnLabel else displayNoLabel
-      , viewAgg = displayWandList
+      , viewAgg = displayWandList model.focusWand
       }
       model.wands
     )
@@ -200,8 +213,8 @@ displayRowLabel name =
     ]
     [el [ centerX, centerY ] (text name)]
 
-displayWandList : List Wand -> Element Msg
-displayWandList wands =
+displayWandList : Focus -> List Wand -> Element Msg
+displayWandList focus wands =
   case wands of
     _ :: _ ->
       wrappedRow
@@ -213,24 +226,93 @@ displayWandList wands =
           }
         , Border.color ruleColor
         ]
-        (List.map displayWand wands)
+        (List.map (displayWand focus) wands)
     _ ->
       none
 
-displayWand : Wand -> Element Msg
-displayWand wand =
+displayWand : Focus -> Wand -> Element Msg
+displayWand focus wand =
   row
     [ height (px 20)
     , width (px 50)
+    , (if focus == Left wand then
+        displayWandDetails wand
+          |> el
+          [ moveLeft 270
+          , htmlAttribute <| Html.Attributes.class "hoverbox"
+          ]
+      else if focus == Right wand then
+        displayWandDetails wand
+          |> el
+          [ moveRight 70
+          , htmlAttribute <| Html.Attributes.class "hoverbox"
+          ]
+      else
+        none
+      )
+      |> inFront
     ]
     [ image
       [ htmlAttribute <| Html.Attributes.class "wand-sprite"
       , htmlAttribute <| Html.Attributes.class "crisp"
+      , htmlAttribute <| Mouse.onOver (WandOver wand)
+      , htmlAttribute <| Mouse.onOut (WandOut wand)
       ]
       { src = Dict.get wand.file wandSprites
         |> Maybe.withDefault ""
       , description = wand.file
       }
+    ]
+
+wandDetailDimensions : List Dimension
+wandDetailDimensions =
+  [ Shuffle
+  , Actions
+  , CastDelay
+  , ReloadTime
+  , Slots
+  , Spread
+  ]
+
+displayWandDetails : Wand -> Element Msg
+displayWandDetails wand =
+  row
+    [ Background.color backgroundColor
+    , Border.width 2
+    , Border.color dropBorderColor
+    , padding 10
+    ]
+    [ column []
+      (List.map (wandAttributeLine wand) wandDetailDimensions)
+    , el [ width (px 50), moveRight 20 ] (detailWandSprite wand)
+    ]
+
+
+detailWandSprite : Wand -> Element Msg
+detailWandSprite wand =
+  image
+    [ htmlAttribute <| Html.Attributes.class "wand-sprite-detail"
+    , htmlAttribute <| Html.Attributes.class "crisp"
+    ]
+    { src = Dict.get wand.file wandSprites
+      |> Maybe.withDefault ""
+    , description = wand.file
+    }
+
+wandAttributeLine : Wand -> Dimension -> Element Msg
+wandAttributeLine wand dim =
+  row
+    [ spacing 5
+    ]
+    [ image
+      [ htmlAttribute <| Html.Attributes.class "crisp"
+      , width (px 14)
+      ]
+      { src = dimensionSprite dim
+      , description = Wand.name dim
+      }
+    , el [ Font.color foregroundColor, width (px 120) ] (text (Wand.name dim))
+    , el [ Font.color dataColor ] (text (dimensionLabel dim wand))
     ]
 
 domDimension : Dimension -> Dom.Element Msg
@@ -333,6 +415,7 @@ dimensionSprite dim =
     ReloadTime -> icon_gun_reload_time
 
 foregroundColor = rgb 0.812 0.812 0.812
+dataColor = rgb 1 1 1
 backgroundColor = rgb 0.067 0.067 0.063
 headerColor = rgb 0.439 0.431 0.431
 titleColor = rgb 0.7 0.7 0.7

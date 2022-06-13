@@ -4,7 +4,7 @@ import Log
 import LuaData
 import LuaData.Parser
 import LuaData.Decode
-import View exposing (Expression(..), DropTarget(..))
+import View exposing (Expression(..), DropTarget(..), Focus(..))
 import Wand exposing (Wand, Dimension(..))
 
 import Browser
@@ -15,11 +15,13 @@ import Http
 import Parser.Advanced as Parser
 import PivotTable
 import Task
+import Time
 
 type Msg
   = UI (View.Msg)
   | GotWands (Result Http.Error (List Wand))
   | WindowSize (Int, Int)
+  | HoverTimeout Time.Posix
 
 type alias Model =
   { wands : PivotTable.Table Wand
@@ -27,6 +29,7 @@ type alias Model =
   , columnDimension : List Dimension
   , sortDimension : List Dimension
   , dragDropState : DragDrop.State Dimension DropTarget
+  , focusWand : Focus
   , showingControls : Bool
   , showingHeaders : Bool
   , windowWidth : Int
@@ -47,6 +50,7 @@ init flags =
     , columnDimension = [Actions, Shuffle]
     , sortDimension = [Slots, Spread, ReloadTime]
     , dragDropState = DragDrop.initialState
+    , focusWand = NoFocus
     , showingControls = True
     , showingHeaders = True
     , windowWidth = 320
@@ -93,12 +97,41 @@ update msg model =
       ( { model | showingControls = not model.showingControls }, Cmd.none )
     UI (View.ToggleHeaders) ->
       ( { model | showingHeaders = not model.showingHeaders }, Cmd.none )
+    UI (View.WandOver wand event) ->
+      ( { model
+        | focusWand =
+          if floor (Tuple.first event.clientPos) < model.windowWidth // 2 then
+            EnterRight wand
+          else
+            EnterLeft wand
+        }
+      , Cmd.none
+      )
+    UI (View.WandOut wand event) ->
+      ( {model | focusWand = NoFocus}, Cmd.none )
     GotWands (Ok wands) ->
-      ({model | wands = PivotTable.makeTable wands}, Cmd.none)
+      ( { model
+        | wands = PivotTable.makeTable wands
+        --, focusWand = List.head wands
+        }
+      , Cmd.none
+      )
     GotWands (Err error) ->
       (model, Log.httpError "fetch error: wands" error)
     WindowSize (width, height) ->
       ( {model | windowWidth = width, windowHeight = height}
+      , Cmd.none
+      )
+    HoverTimeout _ ->
+      ( { model
+        | focusWand =
+          case model.focusWand of
+            Left _ -> model.focusWand
+            Right _ -> model.focusWand
+            EnterLeft wand -> Left wand
+            EnterRight wand -> Right wand
+            NoFocus -> model.focusWand
+        }
       , Cmd.none
       )
 
@@ -167,7 +200,15 @@ listInsertBefore insert before list =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Browser.Events.onResize (\w h -> WindowSize (w, h))
+  Sub.batch
+    [ Browser.Events.onResize (\w h -> WindowSize (w, h))
+    , case model.focusWand of
+      Left _ -> Sub.none
+      Right _ -> Sub.none
+      EnterLeft _ -> Time.every 200 HoverTimeout
+      EnterRight _ -> Time.every 200 HoverTimeout
+      NoFocus -> Sub.none
+    ]
 
 myWands : LuaData.Decode.Decoder (List Wand)
 myWands =
