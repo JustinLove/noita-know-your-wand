@@ -1,6 +1,6 @@
 module NoitaKnowYourWand exposing (..)
 
-import Log
+--import Log
 import View exposing (Expression(..), DropTarget(..), Focus(..), Quadrant(..))
 import Wand exposing (Wand, Dimension(..))
 import Wand.Generated
