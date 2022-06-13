@@ -1,2 +1,2 @@
-- compile wand stats
 - stuck drags
+- debug log check
