@@ -4,7 +4,7 @@ import Log
 import LuaData
 import LuaData.Parser
 import LuaData.Decode
-import View exposing (Expression(..), DropTarget(..), Focus(..))
+import View exposing (Expression(..), DropTarget(..), Focus(..), Quadrant(..))
 import Wand exposing (Wand, Dimension(..))
 
 import Browser
@@ -101,9 +101,15 @@ update msg model =
       ( { model
         | focusWand =
           if floor (Tuple.first event.clientPos) < model.windowWidth // 2 then
-            EnterRight wand
+            if floor (Tuple.second event.clientPos) < model.windowHeight // 2 then
+              Enter LowerRight wand
+            else
+              Enter UpperRight wand
           else
-            EnterLeft wand
+            if floor (Tuple.second event.clientPos) < model.windowHeight // 2 then
+              Enter LowerLeft wand
+            else
+              Enter UpperLeft wand
         }
       , Cmd.none
       )
@@ -126,10 +132,8 @@ update msg model =
       ( { model
         | focusWand =
           case model.focusWand of
-            Left _ -> model.focusWand
-            Right _ -> model.focusWand
-            EnterLeft wand -> Left wand
-            EnterRight wand -> Right wand
+            Focus _ _ -> model.focusWand
+            Enter quad wand -> Focus quad wand
             NoFocus -> model.focusWand
         }
       , Cmd.none
@@ -203,10 +207,8 @@ subscriptions model =
   Sub.batch
     [ Browser.Events.onResize (\w h -> WindowSize (w, h))
     , case model.focusWand of
-      Left _ -> Sub.none
-      Right _ -> Sub.none
-      EnterLeft _ -> Time.every 200 HoverTimeout
-      EnterRight _ -> Time.every 200 HoverTimeout
+      Focus _ _ -> Sub.none
+      Enter _ _ -> Time.every 200 HoverTimeout
       NoFocus -> Sub.none
     ]
 

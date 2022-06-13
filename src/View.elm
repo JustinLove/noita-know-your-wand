@@ -1,4 +1,4 @@
-module View exposing (Msg(..), document, view, Expression(..), DropTarget(..), Focus(..))
+module View exposing (Msg(..), document, view, Expression(..), DropTarget(..), Focus(..), Quadrant(..))
 
 import Wand exposing (Wand, Dimension(..))
 import Sprite.WandSprites exposing (wandSprites)
@@ -30,11 +30,15 @@ type Msg
   | WandOut Wand Mouse.Event
 
 type Focus
-  = Left Wand
-  | Right Wand
-  | EnterLeft Wand
-  | EnterRight Wand
+  = Focus Quadrant Wand
+  | Enter Quadrant Wand
   | NoFocus
+
+type Quadrant
+  = UpperLeft
+  | UpperRight
+  | LowerLeft
+  | LowerRight
 
 narrowWidth = 640
 
@@ -235,18 +239,14 @@ displayWand focus wand =
   row
     [ height (px 20)
     , width (px 50)
-    , (if focus == Left wand then
-        displayWandDetails wand
-          |> el
-          [ moveLeft 270
-          , htmlAttribute <| Html.Attributes.class "hoverbox"
-          ]
-      else if focus == Right wand then
-        displayWandDetails wand
-          |> el
-          [ moveRight 70
-          , htmlAttribute <| Html.Attributes.class "hoverbox"
-          ]
+    , (if focus == Focus UpperLeft wand then
+        displayHoverBox wand -270 -140
+      else if focus == Focus UpperRight wand then
+        displayHoverBox wand 70 -140
+      else if focus == Focus LowerLeft wand then
+        displayHoverBox wand -270 0
+      else if focus == Focus LowerRight wand then
+        displayHoverBox wand 70 0
       else
         none
       )
@@ -262,6 +262,15 @@ displayWand focus wand =
         |> Maybe.withDefault ""
       , description = wand.file
       }
+    ]
+
+displayHoverBox : Wand -> Float -> Float -> Element Msg
+displayHoverBox wand x y =
+  displayWandDetails wand
+    |> el
+    [ moveRight x
+    , moveDown y
+    , htmlAttribute <| Html.Attributes.class "hoverbox"
     ]
 
 wandDetailDimensions : List Dimension
