@@ -1,4 +1,3 @@
-- favicon
 - hover attributes
 - compile wand stats
 - stuck drags
