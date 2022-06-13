@@ -48,8 +48,8 @@ values dim =
       , "3+"
       ]
     Shuffle ->
-      [ "No"
-      , "Yes"
+      [ "Non"
+      , "Sfl"
       ]
     Slots ->
       [ "01-04"

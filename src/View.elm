@@ -55,9 +55,11 @@ view model =
     [ width fill
     , Background.color backgroundColor
     , Font.color foregroundColor
+    , paddingXY 10 0
     ] <|
     column
       [ width fill
+      , spacing 10
       ]
       [ displayHeadline model
       , if model.showingControls then
@@ -66,6 +68,7 @@ view model =
           none
       , row
         [ width fill
+        , spacing 10
         ]
         [ if model.showingControls && model.windowWidth > narrowWidth then
             expressionColumn Rows "Rows" model.rowDimension model.dragDropState
@@ -128,6 +131,7 @@ displayToggleButton active {onPress, title} =
 displayControls model =
   column
     [ width fill
+    , spacing 5
     ]
     [ expressionRow Sort "Sort" model.sortDimension model.dragDropState
     , if model.windowWidth <= narrowWidth then
@@ -335,8 +339,5 @@ titleColor = rgb 0.7 0.7 0.7
 ruleColor = rgb 0.25 0.25 0.25
 
 dropBackgroundColor = rgb 0.184 0.149 0.133
---dropBackgroundColor = rgb 0.133 0.161 0.2
 dropBorderColor = rgb 0.58 0.502 0.392
---dragBackgroundColor = rgb 0.216 0.153 0.141
---dragBorderColor = rgb 0.31 0.196 0.177
 dragBorderColor = dropBorderColor

@@ -1,4 +1,4 @@
-- margins etc
 - favicon
+- hover attributes
+- compile wand stats
 - stuck drags
-- filter to attribute?
