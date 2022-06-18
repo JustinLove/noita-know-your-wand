@@ -3,7 +3,7 @@ html { background-color: #111110 }
 .wand-sprite-detail img { transform: scale(4) rotate(270deg); }
 .dimension-sprite { width: 14px; margin-right: 0.3em; }
 .hoverbox { z-index: 1; }
-.drag-preview, .nb.fr .drag-preview { pointer-events: none; }
+.drag-preview, .nb.fr .drag-preview { pointer-events: none; z-index: 1; }
 
 .crisp img, .crisp canvas, .crisp {
   image-rendering: optimizeSpeed;             /*                     */
@@ -26,10 +26,12 @@ html { background-color: #111110 }
 
 .dom-end {
   padding: 10px;
-  min-height: 30px;
   min-width: 30px;
-  flex-grow: 1000000;
-  border: solid red 1px;
+  min-height: 30px;
+}
+.dom-end-wrapper div {
+  display: flex;
+  flex-grow: 10000;
 }
 
 footer { position: fixed; bottom: 0;}

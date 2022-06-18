@@ -78,20 +78,19 @@ view model =
     --, inFront (case model.focusWand of
         --Just wand -> displayWandDetails wand
         --Nothing -> none)
-    , inFront (DnD.dragged model.draggable htmlDimension
-        |> html
-        |> el
-          [ moveUp 30
-          , moveLeft 40
-          [ htmlAttribute <| Html.Attributes.class "drag-preview"
-          ]
-      )
     ] <|
     column
       [ width fill
       , spacing 10
       ]
-      [ displayHeadline model
+      [ DnD.dragged model.draggable htmlDimension
+        |> html
+        |> el
+          [ moveUp 30
+          , moveLeft 40
+          , htmlAttribute <| Html.Attributes.class "drag-preview"
+          ]
+      , displayHeadline model
       , if model.showingControls then
           displayControls model
         else
@@ -394,7 +393,11 @@ draggableEndOfList state exp =
   dnd.droppable (EndOfList exp) []
     [ htmlEndOfList ]
     |> html
-    |> el [ width fill, height fill ]
+    |> el
+      [ width fill
+      , height fill
+      , htmlAttribute <| Html.Attributes.class "dom-end-wrapper"
+      ]
 
 expressionRow : Expression -> String -> List Dimension -> DnD.Draggable DropTarget Dimension -> Element Msg
 expressionRow exp title dims state =
