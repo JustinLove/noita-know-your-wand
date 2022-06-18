@@ -1,2 +1,6 @@
 - stuck drags
+- `<>` sorting
+- app help
+- readme
 - debug log check
+- publish

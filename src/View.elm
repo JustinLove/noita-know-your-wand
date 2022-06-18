@@ -255,8 +255,8 @@ displayWand focus wand =
     [ image
       [ htmlAttribute <| Html.Attributes.class "wand-sprite"
       , htmlAttribute <| Html.Attributes.class "crisp"
-      , htmlAttribute <| Mouse.onOver (WandOver wand)
-      , htmlAttribute <| Mouse.onOut (WandOut wand)
+      , htmlAttribute <| Mouse.onEnter (WandOver wand)
+      , htmlAttribute <| Mouse.onLeave (WandOut wand)
       ]
       { src = Dict.get wand.file wandSprites
         |> Maybe.withDefault ""
