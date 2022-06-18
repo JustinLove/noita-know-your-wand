@@ -162,8 +162,8 @@ displayTable model =
     , width fill
     ]
     (PivotTable.pivotTable
-      { rowGroupFields = List.map dimensionLabel model.rowDimension
-      , colGroupFields = List.map dimensionLabel model.columnDimension
+      { rowGroupFields = List.map pivotValue model.rowDimension
+      , colGroupFields = List.map pivotValue model.columnDimension
       , aggregator = \wands -> List.foldr sortByDimension wands model.sortDimension
       , viewRow = if model.showingHeaders then displayRowLabel else displayNoLabel
       , viewCol = if model.showingHeaders then displayColumnLabel else displayNoLabel
@@ -181,8 +181,43 @@ dimensionLabel dim =
       |> Maybe.withDefault ("invalid value "++(String.fromInt i))
     )
 
-displayColumnLabel : String -> Element Msg
-displayColumnLabel name =
+pivotValue : Dimension -> (Wand -> Int)
+pivotValue dim =
+  (Wand.attribute dim) >> (\i -> i + (dimensionOffset dim))
+
+dimensionOffset : Dimension -> Int
+dimensionOffset dim =
+  case dim of
+    CastDelay -> 10
+    Actions -> 20
+    Shuffle -> 30
+    Slots -> 40
+    Spread -> 50
+    ReloadTime -> 60
+
+pivotValueToString : Int -> String
+pivotValueToString v =
+  let
+    i = remainderBy 10 v
+    dim =
+      case v // 10 of
+        1 -> CastDelay
+        2 -> Actions
+        3 -> Shuffle
+        4 -> Slots
+        5 -> Spread
+        6 -> ReloadTime
+        _ ->
+          let _ = Debug.log "bad pivot value" v in
+          CastDelay
+  in
+    Wand.values dim
+      |> List.drop i
+      |> List.head
+      |> Maybe.withDefault ("invalid value "++(String.fromInt i))
+
+displayColumnLabel : Int -> Element Msg
+displayColumnLabel value =
   el
     [ width fill
     , height fill
@@ -194,14 +229,14 @@ displayColumnLabel name =
       , top = 0
       }
     ]
-    (el [ centerX, centerY ] (text name))
+    (el [ centerX, centerY ] (text (pivotValueToString value)))
 
-displayNoLabel : String -> Element Msg
+displayNoLabel : Int -> Element Msg
 displayNoLabel _ = none
 
-displayRowLabel : String -> Element Msg
-displayRowLabel name =
-  row
+displayRowLabel : Int -> Element Msg
+displayRowLabel value =
+  el
     [ width fill
     , height fill
     , paddingXY 5 0
@@ -213,7 +248,7 @@ displayRowLabel name =
       , top = 1
       }
     ]
-    [el [ centerX, centerY ] (text name)]
+    (el [ centerX, centerY ] (text (pivotValueToString value)))
 
 displayWandList : Focus -> List Wand -> Element Msg
 displayWandList focus wands =

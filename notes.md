@@ -1,4 +1,4 @@
-- `<>` sorting
+- pivot sorting?
 - app help
 - readme
 - debug log check
