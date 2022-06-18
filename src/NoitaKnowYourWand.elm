@@ -10,7 +10,6 @@ import Browser
 import Browser.Dom as Dom
 import Browser.Events
 import DnD
-import Dom.DragDrop as DragDrop
 import Http
 import PivotTable
 import Task
@@ -27,7 +26,6 @@ type alias Model =
   , rowDimension : List Dimension
   , columnDimension : List Dimension
   , sortDimension : List Dimension
-  , dragDropState : DragDrop.State Dimension DropTarget
   , draggable : DnD.Draggable DropTarget Dimension
   , focusWand : Focus
   , showingControls : Bool
@@ -49,7 +47,6 @@ init flags =
     , rowDimension = [CastDelay]
     , columnDimension = [Actions, Shuffle]
     , sortDimension = [Slots, Spread, ReloadTime]
-    , dragDropState = DragDrop.initialState
     , draggable = dnd.model
     , focusWand = NoFocus
     , showingControls = True
@@ -73,29 +70,8 @@ update msg model =
   case msg |> Debug.log "msg" of
     UI (View.None) ->
       (model, Cmd.none)
-    UI (View.DragStarted dim) ->
-      ( { model
-        | dragDropState = DragDrop.startDragging model.dragDropState dim
-        }
-      , Cmd.none)
-    UI (View.DragTargetChanged drop) ->
-      ( { model
-        | dragDropState = DragDrop.updateDropTarget model.dragDropState drop
-        }
-      , Cmd.none)
-    UI (View.DragCanceled) ->
-      ( { model
-        | dragDropState = DragDrop.stopDragging model.dragDropState
-        }
-      , Cmd.none)
-    UI (View.DragCompleted dim drop) ->
-      ( { model | dragDropState = DragDrop.stopDragging model.dragDropState }
-        |> removeFromExpressions dim
-        |> dropOperation dim drop
-      , Cmd.none
-      )
     UI (View.Dropped drop dim) ->
-      ( { model | dragDropState = DragDrop.stopDragging model.dragDropState }
+      ( model
         |> removeFromExpressions dim
         |> dropOperation dim drop
       , Cmd.none

@@ -1,4 +1,3 @@
-- stuck drags
 - `<>` sorting
 - app help
 - readme

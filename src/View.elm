@@ -7,8 +7,6 @@ import Sprite.UiSprite exposing(..)
 import Array
 import Dict
 import DnD
-import Dom
-import Dom.DragDrop as DragDrop
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -21,10 +19,6 @@ import PivotTable
 
 type Msg
   = None
-  | DragStarted Dimension
-  | DragTargetChanged DropTarget
-  | DragCanceled
-  | DragCompleted Dimension DropTarget
   | Dropped DropTarget Dimension
   | DnDMsg (DnD.Msg DropTarget Dimension)
   | ToggleControls
@@ -44,14 +38,6 @@ type Quadrant
   | LowerRight
 
 narrowWidth = 640
-
-dragMessages : DragDrop.Messages Msg Dimension DropTarget
-dragMessages =
-  { dragStarted = DragStarted
-  , dropTargetChanged = DragTargetChanged
-  , dragEnded = DragCanceled
-  , dropped = DragCompleted
-  }
 
 dnd = DnD.init DnDMsg Dropped
 
@@ -336,21 +322,6 @@ wandAttributeLine wand dim =
     , el [ Font.color dataColor ] (text (dimensionLabel dim wand))
     ]
 
-domDimension : Dimension -> Dom.Element Msg
-domDimension dim =
-  Dom.element "div"
-    |> Dom.appendChild
-      (Dom.element "img"
-        |> Dom.addAttribute (Html.Attributes.src (dimensionSprite dim))
-        |> Dom.addClass "dimension-sprite"
-        |> Dom.addClass "crisp"
-      )
-    |> Dom.appendChild
-      (Dom.element "span"
-        |> Dom.appendText (Wand.name dim)
-      )
-    |> Dom.addClass "dom-dimension"
-
 htmlDimension : Dimension -> Html Msg
 htmlDimension dim =
   Html.div
@@ -364,19 +335,9 @@ htmlDimension dim =
     , Html.span [] [ Html.text (Wand.name dim) ]
     ]
 
-domEndOfList : Dom.Element Msg
-domEndOfList =
-  Dom.element "div"
-    |> Dom.addClass "dom-end"
-
 htmlEndOfList : Html Msg
 htmlEndOfList =
   Html.div [ Html.Attributes.class "dom-end" ] []
-
-domToUi : Dom.Element Msg -> Element Msg
-domToUi dom =
-  Dom.render dom
-    |> html
 
 draggableDimension : DnD.Draggable DropTarget Dimension -> Expression -> Dimension -> Element Msg
 draggableDimension state exp dim =
