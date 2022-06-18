@@ -1,7 +1,7 @@
 module NoitaKnowYourWand exposing (..)
 
 --import Log
-import View exposing (Expression(..), DropTarget(..), Focus(..), Quadrant(..))
+import View exposing (Expression(..), DropTarget(..), Focus(..), Quadrant(..), dnd)
 import Wand exposing (Wand, Dimension(..))
 import Wand.Generated
 --import Wand.Live
@@ -9,6 +9,7 @@ import Wand.Generated
 import Browser
 import Browser.Dom as Dom
 import Browser.Events
+import DnD
 import Dom.DragDrop as DragDrop
 import Http
 import PivotTable
@@ -27,6 +28,7 @@ type alias Model =
   , columnDimension : List Dimension
   , sortDimension : List Dimension
   , dragDropState : DragDrop.State Dimension DropTarget
+  , draggable : DnD.Draggable DropTarget Dimension
   , focusWand : Focus
   , showingControls : Bool
   , showingHeaders : Bool
@@ -48,6 +50,7 @@ init flags =
     , columnDimension = [Actions, Shuffle]
     , sortDimension = [Slots, Spread, ReloadTime]
     , dragDropState = DragDrop.initialState
+    , draggable = dnd.model
     , focusWand = NoFocus
     , showingControls = True
     , showingHeaders = True
@@ -67,7 +70,7 @@ initialWindowSize =
     |> Task.perform WindowSize
 
 update msg model =
-  case msg of
+  case msg |> Debug.log "msg" of
     UI (View.None) ->
       (model, Cmd.none)
     UI (View.DragStarted dim) ->
@@ -91,6 +94,14 @@ update msg model =
         |> dropOperation dim drop
       , Cmd.none
       )
+    UI (View.Dropped drop dim) ->
+      ( { model | dragDropState = DragDrop.stopDragging model.dragDropState }
+        |> removeFromExpressions dim
+        |> dropOperation dim drop
+      , Cmd.none
+      )
+    UI (View.DnDMsg dndmsg) ->
+      ( { model | draggable = DnD.update dndmsg model.draggable }, Cmd.none )
     UI (View.ToggleControls) ->
       ( { model | showingControls = not model.showingControls }, Cmd.none )
     UI (View.ToggleHeaders) ->
@@ -209,6 +220,7 @@ subscriptions model =
       Focus _ _ -> Sub.none
       Enter _ _ -> Time.every 200 HoverTimeout
       NoFocus -> Sub.none
+    , dnd.subscriptions model.draggable |> Sub.map UI
     ]
 
 

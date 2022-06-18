@@ -16,6 +16,7 @@
             "elm/parser": "1.1.0",
             "elm/time": "1.0.0",
             "integral424/elm-pivot-table": "1.0.2",
+            "ir4y/elm-dnd": "3.0.2",
             "mdgriffith/elm-ui": "1.1.8",
             "mpizenberg/elm-pointer-events": "4.0.2",
             "the-sett/elm-syntax-dsl": "6.0.1",

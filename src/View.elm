@@ -1,4 +1,4 @@
-module View exposing (Msg(..), document, view, Expression(..), DropTarget(..), Focus(..), Quadrant(..))
+module View exposing (Msg(..), document, view, Expression(..), DropTarget(..), Focus(..), Quadrant(..), dnd)
 
 import Wand exposing (Wand, Dimension(..))
 import Sprite.WandSprites exposing (wandSprites)
@@ -6,6 +6,7 @@ import Sprite.UiSprite exposing(..)
 
 import Array
 import Dict
+import DnD
 import Dom
 import Dom.DragDrop as DragDrop
 import Element exposing (..)
@@ -24,6 +25,8 @@ type Msg
   | DragTargetChanged DropTarget
   | DragCanceled
   | DragCompleted Dimension DropTarget
+  | Dropped DropTarget Dimension
+  | DnDMsg (DnD.Msg DropTarget Dimension)
   | ToggleControls
   | ToggleHeaders
   | WandOver Wand Mouse.Event
@@ -50,6 +53,8 @@ dragMessages =
   , dropped = DragCompleted
   }
 
+dnd = DnD.init DnDMsg Dropped
+
 type Expression
   = Rows
   | Columns
@@ -73,6 +78,14 @@ view model =
     --, inFront (case model.focusWand of
         --Just wand -> displayWandDetails wand
         --Nothing -> none)
+    , inFront (DnD.dragged model.draggable htmlDimension
+        |> html
+        |> el
+          [ moveUp 30
+          , moveLeft 40
+          [ htmlAttribute <| Html.Attributes.class "drag-preview"
+          ]
+      )
     ] <|
     column
       [ width fill
@@ -88,7 +101,7 @@ view model =
         , spacing 10
         ]
         [ if model.showingControls && model.windowWidth > narrowWidth then
-            expressionColumn Rows "Rows" model.rowDimension model.dragDropState
+            expressionColumn Rows "Rows" model.rowDimension model.draggable
           else
             none
         , displayTable model
@@ -150,12 +163,12 @@ displayControls model =
     [ width fill
     , spacing 5
     ]
-    [ expressionRow Sort "Sort" model.sortDimension model.dragDropState
+    [ expressionRow Sort "Sort" model.sortDimension model.draggable
     , if model.windowWidth <= narrowWidth then
-        expressionRow Rows "Rows" model.rowDimension model.dragDropState
+        expressionRow Rows "Rows" model.rowDimension model.draggable
       else
         none
-    , expressionRow Columns "Columns" model.columnDimension model.dragDropState
+    , expressionRow Columns "Columns" model.columnDimension model.draggable
     ]
 
 displayTable model =
@@ -339,37 +352,51 @@ domDimension dim =
       )
     |> Dom.addClass "dom-dimension"
 
+htmlDimension : Dimension -> Html Msg
+htmlDimension dim =
+  Html.div
+    [ Html.Attributes.class "dom-dimension"
+    ]
+    [ Html.img
+      [ Html.Attributes.src (dimensionSprite dim)
+      , Html.Attributes.class "dimension-sprite"
+      , Html.Attributes.class "crisp"
+      ] []
+    , Html.span [] [ Html.text (Wand.name dim) ]
+    ]
+
 domEndOfList : Dom.Element Msg
 domEndOfList =
   Dom.element "div"
     |> Dom.addClass "dom-end"
 
-uiToDom : Element Msg -> Dom.Element Msg
-uiToDom el =
-  Dom.element "div"
-    |> Dom.appendNode (layout [] el)
+htmlEndOfList : Html Msg
+htmlEndOfList =
+  Html.div [ Html.Attributes.class "dom-end" ] []
 
 domToUi : Dom.Element Msg -> Element Msg
 domToUi dom =
   Dom.render dom
     |> html
 
-draggableDimension : DragDrop.State Dimension DropTarget -> Expression -> Dimension -> Element Msg
+draggableDimension : DnD.Draggable DropTarget Dimension -> Expression -> Dimension -> Element Msg
 draggableDimension state exp dim =
-  (domDimension dim)
-    |> DragDrop.makeDraggable state dim dragMessages
-    |> DragDrop.makeDroppable state (OntoElement exp dim) dragMessages
-    |> domToUi
+  dnd.draggable dim []
+    [ dnd.droppable (OntoElement exp dim) []
+      [ htmlDimension dim
+      ]
+    ]
+    |> html
     |> el [ ]
 
-draggableEndOfList : DragDrop.State Dimension DropTarget -> Expression -> Element Msg
+draggableEndOfList : DnD.Draggable DropTarget Dimension -> Expression -> Element Msg
 draggableEndOfList state exp =
-  domEndOfList
-    |> DragDrop.makeDroppable state (EndOfList exp) dragMessages
-    |> domToUi
-    |> el [ width fill ]
+  dnd.droppable (EndOfList exp) []
+    [ htmlEndOfList ]
+    |> html
+    |> el [ width fill, height fill ]
 
-expressionRow : Expression -> String -> List Dimension -> DragDrop.State Dimension DropTarget -> Element Msg
+expressionRow : Expression -> String -> List Dimension -> DnD.Draggable DropTarget Dimension -> Element Msg
 expressionRow exp title dims state =
   column [ width fill ]
     [ el
@@ -389,7 +416,7 @@ expressionRow exp title dims state =
       ((List.map (draggableDimension state exp) dims) ++ [draggableEndOfList state exp])
     ]
 
-expressionColumn : Expression -> String -> List Dimension -> DragDrop.State Dimension DropTarget -> Element Msg
+expressionColumn : Expression -> String -> List Dimension -> DnD.Draggable DropTarget Dimension -> Element Msg
 expressionColumn exp title dims state =
   column [ width shrink, height fill, alignTop ]
     [ el
