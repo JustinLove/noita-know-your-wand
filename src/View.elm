@@ -82,7 +82,6 @@ view model =
           ]
       , displayHeadline model
       , displayBody model
-      , displayFooter
       ]
 
 displayHeadline model =
@@ -163,6 +162,7 @@ displayAbout =
       , paragraph []
         [ text "I haven't been able to find a pattern to Spread or Reload Time."
         ]
+      , displayFooter
       ]
     ]
 
