@@ -1,4 +1,5 @@
-- pivot sorting?
+- remove unused attributes
+- shuffle order
 - app help
 - readme
 - debug log check

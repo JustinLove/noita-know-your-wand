@@ -181,43 +181,19 @@ dimensionLabel dim =
       |> Maybe.withDefault ("invalid value "++(String.fromInt i))
     )
 
-pivotValue : Dimension -> (Wand -> Int)
+valueLabel : Dimension -> Int -> String
+valueLabel dim value =
+  Wand.values dim
+    |> List.drop value
+    |> List.head
+    |> Maybe.withDefault ("invalid value "++(String.fromInt value))
+
+pivotValue : Dimension -> (Wand -> (Int, String))
 pivotValue dim =
-  (Wand.attribute dim) >> (\i -> i + (dimensionOffset dim))
+  (Wand.attribute dim) >> (\i -> (i, valueLabel dim i))
 
-dimensionOffset : Dimension -> Int
-dimensionOffset dim =
-  case dim of
-    CastDelay -> 10
-    Actions -> 20
-    Shuffle -> 30
-    Slots -> 40
-    Spread -> 50
-    ReloadTime -> 60
-
-pivotValueToString : Int -> String
-pivotValueToString v =
-  let
-    i = remainderBy 10 v
-    dim =
-      case v // 10 of
-        1 -> CastDelay
-        2 -> Actions
-        3 -> Shuffle
-        4 -> Slots
-        5 -> Spread
-        6 -> ReloadTime
-        _ ->
-          let _ = Debug.log "bad pivot value" v in
-          CastDelay
-  in
-    Wand.values dim
-      |> List.drop i
-      |> List.head
-      |> Maybe.withDefault ("invalid value "++(String.fromInt i))
-
-displayColumnLabel : Int -> Element Msg
-displayColumnLabel value =
+displayColumnLabel : (Int, String) -> Element Msg
+displayColumnLabel (_, title) =
   el
     [ width fill
     , height fill
@@ -229,13 +205,13 @@ displayColumnLabel value =
       , top = 0
       }
     ]
-    (el [ centerX, centerY ] (text (pivotValueToString value)))
+    (el [ centerX, centerY ] (text title))
 
-displayNoLabel : Int -> Element Msg
+displayNoLabel : (Int, String) -> Element Msg
 displayNoLabel _ = none
 
-displayRowLabel : Int -> Element Msg
-displayRowLabel value =
+displayRowLabel : (Int, String) -> Element Msg
+displayRowLabel (_, title) =
   el
     [ width fill
     , height fill
@@ -248,7 +224,7 @@ displayRowLabel value =
       , top = 1
       }
     ]
-    (el [ centerX, centerY ] (text (pivotValueToString value)))
+    (el [ centerX, centerY ] (text title))
 
 displayWandList : Focus -> List Wand -> Element Msg
 displayWandList focus wands =
