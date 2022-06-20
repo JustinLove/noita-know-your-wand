@@ -1,2 +1,1 @@
-- debug log check
 - publish

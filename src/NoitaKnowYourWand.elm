@@ -69,7 +69,7 @@ initialWindowSize =
     |> Task.perform WindowSize
 
 update msg model =
-  case msg |> Debug.log "msg" of
+  case msg of
     UI (View.None) ->
       (model, Cmd.none)
     UI (View.Dropped drop dim) ->
