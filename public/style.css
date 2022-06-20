@@ -48,5 +48,5 @@ svg.icon {
 .icon-github { color: #888; }
 .icon-twitter { color: #55acee; }
 .icon-twitch { color: #6441A4; }
-a:link, a:visited { color: #b6a242; }
-a:hover, a:active { color: rgb(218, 216, 222); }
+a:link, a:visited { color: white; }
+a:hover, a:active { color: #ffffb2; }

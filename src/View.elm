@@ -12,10 +12,13 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
+import Element.Region as Region
 import Html exposing (Html)
 import Html.Attributes
 import Html.Events.Extra.Mouse as Mouse
 import PivotTable
+import Svg exposing (svg, use)
+import Svg.Attributes exposing (xlinkHref)
 
 type Msg
   = None
@@ -78,30 +81,8 @@ view model =
           , htmlAttribute <| Html.Attributes.class "drag-preview"
           ]
       , displayHeadline model
-      , column
-        [ width fill
-        , spacing 10
-        , inFront
-          (if model.showingAbout then
-            displayAbout
-          else
-            none)
-        ]
-        [ if model.showingControls then
-            displayControls model
-          else
-            none
-        , row
-          [ width fill
-          , spacing 10
-          ]
-          [ if model.showingControls && model.windowWidth > narrowWidth then
-              expressionColumn Rows "Rows" model.rowDimension model.draggable
-            else
-              none
-          , displayTable model
-          ]
-        ]
+      , displayBody model
+      , displayFooter
       ]
 
 displayHeadline model =
@@ -182,6 +163,32 @@ displayAbout =
       , paragraph []
         [ text "I haven't been able to find a pattern to Spread or Reload Time."
         ]
+      ]
+    ]
+
+displayBody model =
+  column
+    [ width fill
+    , spacing 10
+    , inFront
+      (if model.showingAbout then
+        displayAbout
+      else
+        none)
+    ]
+    [ if model.showingControls then
+        displayControls model
+      else
+        none
+    , row
+      [ width fill
+      , spacing 10
+      ]
+      [ if model.showingControls && model.windowWidth > narrowWidth then
+          expressionColumn Rows "Rows" model.rowDimension model.draggable
+        else
+          none
+      , displayTable model
       ]
     ]
 
@@ -466,6 +473,36 @@ dimensionSprite dim =
     Slots -> icon_gun_actions_per_round
     Spread -> icon_spread_degrees
     ReloadTime -> icon_gun_reload_time
+
+--displayFooter : Element msg
+displayFooter =
+  row
+    [ Region.footer
+    , spacing 10
+    , alignBottom
+    , alignLeft
+    , Font.size 12
+    ]
+    [ link []
+      { url = "https://github.com/JustinLove/noita-know-your-wand"
+      , label = row [] [ icon "github", text "noita-know-your-wand" ]
+      }
+    , link []
+      { url = "https://twitter.com/wondible"
+      , label = row [] [ icon "twitter", text "@wondible" ]
+      }
+    , link []
+      { url = "https://twitch.tv/wondible"
+      , label = row [] [ icon "twitch", text "wondible" ]
+      }
+    ]
+
+icon : String -> Element msg
+icon name =
+  svg [ Svg.Attributes.class ("icon icon-"++name) ]
+    [ use [ xlinkHref ("symbol-defs.svg#icon-"++name) ] [] ]
+  |> html
+
 
 foregroundColor = rgb 0.812 0.812 0.812
 dataColor = rgb 1 1 1
