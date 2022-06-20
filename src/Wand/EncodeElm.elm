@@ -17,10 +17,6 @@ wand : Wand -> Expression
 wand w =
   record
     [ ("file", w.file |> string)
-    , ("gripX", w.gripX |> int)
-    , ("gripY", w.gripY |> int)
-    , ("tipX", w.tipX |> int)
-    , ("tipY", w.tipY |> int)
     , ("castDelay", w.castDelay |> int)
     , ("actions", w.actions |> int)
     , ("shuffle", w.shuffle |> int)

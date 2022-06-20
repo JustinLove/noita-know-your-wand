@@ -97,7 +97,7 @@ generateFile wands =
 parseFile : String -> String -> Result String File
 parseFile filename contents =
   case filename |> Debug.log "filename" of
-    "wands.lua" ->
+    "data/scripts/gun/procedural/wands.lua" ->
       LuaData.Decode.decodeString myWands contents
         |> Result.map Wands
         |> Result.mapError LuaData.Decode.errorToString
@@ -116,16 +116,13 @@ myWand =
     string = LuaData.Decode.string
     filename = string |> LuaData.Decode.map (\file -> String.replace "data/items_gfx/wands/" "" file)
     int = LuaData.Decode.int
+    shuffle = LuaData.Decode.int |> LuaData.Decode.map (\v -> 1 - v)
   in
   LuaData.Decode.succeed Wand
     |> with (field "file" filename)
-    |> with (field "grip_x" int)
-    |> with (field "grip_y" int)
-    |> with (field "tip_x" int)
-    |> with (field "tip_y" int)
     |> with (field "fire_rate_wait" int)
     |> with (field "actions_per_round" int)
-    |> with (field "shuffle_deck_when_empty" int)
+    |> with (field "shuffle_deck_when_empty" shuffle)
     |> with (field "deck_capacity" int)
     |> with (field "spread_degrees" int)
     |> with (field "reload_time" int)

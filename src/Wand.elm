@@ -2,10 +2,6 @@ module Wand exposing (..)
 
 type alias Wand =
   { file : String
-  , gripX : Int
-  , gripY : Int
-  , tipX : Int
-  , tipY : Int
   , castDelay : Int
   , actions : Int
   , shuffle : Int
@@ -48,8 +44,8 @@ values dim =
       , "3+"
       ]
     Shuffle ->
-      [ "No"
-      , "Sfl"
+      [ "Sfl"
+      , "No"
       ]
     Slots ->
       [ "1-4"
