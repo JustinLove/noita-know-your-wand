@@ -1,3 +1,2 @@
-- readme
 - debug log check
 - publish
