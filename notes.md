@@ -1,4 +1,5 @@
 - app help
+- social links
 - readme
 - debug log check
 - publish

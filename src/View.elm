@@ -23,6 +23,7 @@ type Msg
   | DnDMsg (DnD.Msg DropTarget Dimension)
   | ToggleControls
   | ToggleHeaders
+  | ToggleAbout
   | WandOver Wand Mouse.Event
   | WandOut Wand Mouse.Event
 
@@ -77,19 +78,29 @@ view model =
           , htmlAttribute <| Html.Attributes.class "drag-preview"
           ]
       , displayHeadline model
-      , if model.showingControls then
-          displayControls model
-        else
-          none
-      , row
+      , column
         [ width fill
         , spacing 10
+        , inFront
+          (if model.showingAbout then
+            displayAbout
+          else
+            none)
         ]
-        [ if model.showingControls && model.windowWidth > narrowWidth then
-            expressionColumn Rows "Rows" model.rowDimension model.draggable
+        [ if model.showingControls then
+            displayControls model
           else
             none
-        , displayTable model
+        , row
+          [ width fill
+          , spacing 10
+          ]
+          [ if model.showingControls && model.windowWidth > narrowWidth then
+              expressionColumn Rows "Rows" model.rowDimension model.draggable
+            else
+              none
+          , displayTable model
+          ]
         ]
       ]
 
@@ -117,6 +128,10 @@ displayButtons model =
       { onPress = ToggleHeaders
       , title = "Headers"
       }
+    , displayToggleButton model.showingAbout
+      { onPress = ToggleAbout
+      , title = "About"
+      }
     ]
 
 displayToggleButton : Bool -> {onPress : Msg, title : String } -> Element Msg
@@ -142,6 +157,33 @@ displayToggleButton active {onPress, title} =
         , text title
         ]
     }
+
+displayAbout =
+  column
+    [ width fill
+    ]
+    [ column
+      [ width (maximum 400 fill)
+      , Background.color backgroundColor
+      , Border.width 2
+      , Border.color dropBorderColor
+      , centerX
+      , padding 10
+      , Font.size 16
+      , spacing 10 
+      ]
+      [ paragraph []
+        [ text """Drag wand atributes to a box to redefine the table.
+        Group wands into different arrangements to look for visual patterns."""
+        ]
+      , paragraph []
+        [ text """Attribute values are approximate. Noita makes the wand and then tries to find the best match for the art, so some attributes may be out of range if the others match well."""
+        ]
+      , paragraph []
+        [ text "I haven't been able to find a pattern to Spread or Reload Time."
+        ]
+      ]
+    ]
 
 displayControls model =
   column

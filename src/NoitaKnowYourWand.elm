@@ -30,6 +30,7 @@ type alias Model =
   , focusWand : Focus
   , showingControls : Bool
   , showingHeaders : Bool
+  , showingAbout : Bool
   , windowWidth : Int
   , windowHeight : Int
   }
@@ -51,6 +52,7 @@ init flags =
     , focusWand = NoFocus
     , showingControls = True
     , showingHeaders = True
+    , showingAbout = False
     , windowWidth = 320
     , windowHeight = 200
     }
@@ -82,6 +84,8 @@ update msg model =
       ( { model | showingControls = not model.showingControls }, Cmd.none )
     UI (View.ToggleHeaders) ->
       ( { model | showingHeaders = not model.showingHeaders }, Cmd.none )
+    UI (View.ToggleAbout) ->
+      ( { model | showingAbout = not model.showingAbout }, Cmd.none )
     UI (View.WandOver wand event) ->
       ( { model
         | focusWand =
